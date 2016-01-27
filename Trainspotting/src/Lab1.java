@@ -68,11 +68,13 @@ public class Lab1 {
             if (se.getStatus() == SensorEvent.ACTIVE) {
                 int x = se.getXpos(); int y = se.getYpos();
                 try {
-                    if (x == 14 && y == 7) {
+                    if (x == 14 && (y == 7 || y == 8)) {
                         if (downwards) {
                             tryEnterSharedTarck(1);
-                            Lab1.this.tsi.setSwitch(17, 7, TSimInterface.SWITCH_RIGHT);
+                            Lab1.this.tsi.setSwitch(17, 7,
+                                    y == 7 ? TSimInterface.SWITCH_RIGHT: TSimInterface.SWITCH_LEFT);
                         } else {
+                            tracks[1].release();
                             stopTrain();
                             waitAtStop();
                             resumeTrain();
@@ -102,11 +104,8 @@ public class Lab1 {
                     } else if (x == 1 && y == 10) {
                         if (downwards) {
                             tracks[2].release();
-                            if (!tracks[4].tryAcquire()) {
-                                Lab1.this.tsi.setSwitch(3, 11, TSimInterface.SWITCH_LEFT);
-                            } else {
-                                Lab1.this.tsi.setSwitch(3, 11, TSimInterface.SWITCH_RIGHT);
-                            }
+                            Lab1.this.tsi.setSwitch(3, 11,
+                                    tracks[4].tryAcquire() ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
                         } else {
                             tracks[4].release();
                             Lab1.this.tsi.setSwitch(4, 9,
