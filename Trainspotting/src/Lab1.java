@@ -136,7 +136,7 @@ public class Lab1 {
                             resumeTrain();
                         }
 
-                    } else if (x == 5 && (y == 13 || y == 11)) {
+                    } else if (x == 6 && (y == 13 || y == 11)) {
                         if (downwards) {
                             releaseIfPossible(3);
                         } else {
@@ -181,7 +181,7 @@ public class Lab1 {
          */
         private void stopTrain() throws InterruptedException, CommandException {
             Lab1.this.tsi.setSpeed(id, 0);
-            Thread.sleep(2* 100 * speed);
+            //Thread.sleep(2* 100 * speed);
         }
 
         /**
