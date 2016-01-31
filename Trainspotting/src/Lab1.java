@@ -234,7 +234,6 @@ public class Lab1 {
             } else {
                 Lab1.this.tsi.setSwitch(switchX, switchY,failDir);
             }
-
         }
 
     }
