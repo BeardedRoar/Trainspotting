@@ -181,7 +181,6 @@ public class Lab1 {
          */
         private void stopTrain() throws InterruptedException, CommandException {
             Lab1.this.tsi.setSpeed(id, 0);
-            //Thread.sleep(2* 100 * speed);
         }
 
         /**
