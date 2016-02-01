@@ -33,21 +33,13 @@ public class Lab1 {
             tracks[i] = new Semaphore(1);
         }
 
-        try {
-            // Start the trains
-            tsi.setSpeed(1, speed1);
-            tsi.setSpeed(2, speed2);
+        trainThreads[0] = new Thread(new TrainRunnable(1, speed1));
+        trainThreads[1] = new Thread(new TrainRunnable(2, speed2));
 
-            trainThreads[0] = new Thread(new TrainRunnable(1, speed1));
-            trainThreads[1] = new Thread(new TrainRunnable(2, speed2));
-            for (int i = 0; i < 2; i++) {
-                trainThreads[i].start();
-            }
+        for (int i = 0; i < 2; i++) {
+            trainThreads[i].start();
         }
-        catch (CommandException e) {
-            e.printStackTrace();    // or only e.getMessage() for the error
-            System.exit(1);
-        }
+        
     }
 
     /**
@@ -89,6 +81,7 @@ public class Lab1 {
                 if (id == 2){
                     tracks[4].acquire();
                     heldSemaphores.add(4);
+                    tsi.setSpeed(id, speed);
                 }
 
                 // The logic while the trains are running.
