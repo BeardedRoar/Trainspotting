@@ -73,6 +73,8 @@ public class Lab1 {
         public TrainRunnable(int id, int speed){
             this.id = id;
             this.speed = speed;
+
+            // The train with id 1 starts by going downwards, while train number 2 starts by going upwards.
             this.downwards = id == 1;
             heldSemaphores = new ArrayList<Integer>();
 
@@ -81,14 +83,22 @@ public class Lab1 {
         @Override
         public void run() {
             try {
+                // Initiates the trains, the train with id 2 starts on a critical part of the tracks,
+                // and must therefore be given the responding semaphore.
                 if (id == 2){
                     tracks[4].acquire();
                     heldSemaphores.add(4);
                 }
+
+                // The logic while the trains are running.
+                // First await the next sensor, then handle that sensor-event and repeat.
                 while (true) {
                     SensorEvent se = Lab1.this.tsi.getSensor(id);
                     handleSensorEvent(se);
                 }
+
+                // Semaphores are not released on an exception as the train still occupy the responding track,
+                // and such could make the accident worse by letting another train collide with a still-standing train.
             } catch (CommandException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -96,11 +106,25 @@ public class Lab1 {
             }
         }
 
+        /**
+         * Handles a sensor event according to the state of the train passing the sensor and the state of track
+         * it tries to enter.
+         * @param se the sensor-event to handle
+         * @throws InterruptedException in case the thread is interrupted while the event is still being handled.
+         */
         private void handleSensorEvent(SensorEvent se) throws InterruptedException {
+            // Each event is assumed to be caused by the train monitored by thread, as this should be the only event
+            // it could access.
+
+            // Only handle relevant events by not performing the same logic on entering and exiting the same sensor.
             if (se.getStatus() == SensorEvent.ACTIVE) {
+
+                // Each block represents one sensor or two parallel sensors, and is handled different depending on the
+                // direction of the train, as this dictates if and what track it has left or tries to enter.
                 int x = se.getXpos(); int y = se.getYpos();
                 try {
                     if (x == 14 && (y == 7 || y == 8)) {
+                        // Parallel sensors on tracks 0, train either trying to enter or has just left track 1.
                         if (downwards) {
                             tryEnterSharedTrack(1, 17, 7,
                                     y == 7 ? TSimInterface.SWITCH_RIGHT: TSimInterface.SWITCH_LEFT);
