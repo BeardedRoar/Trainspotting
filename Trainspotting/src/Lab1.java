@@ -10,30 +10,30 @@ public class Lab1 {
     private final Thread[] trainThreads;
     private TSimInterface tsi = TSimInterface.getInstance();
 
-  public Lab1(Integer speed1, Integer speed2) {
+    public Lab1(Integer speed1, Integer speed2) {
 
-      this.tracks = new Semaphore[6];
-      this.trainThreads = new Thread[2];
+        this.tracks = new Semaphore[6];
+        this.trainThreads = new Thread[2];
 
-      for (int i = 0; i < 6; i++) {
-          tracks[i] = new Semaphore(1);
-      }
+        for (int i = 0; i < 6; i++) {
+            tracks[i] = new Semaphore(1);
+        }
 
-    try {
-        tsi.setSpeed(1, speed1);
-        tsi.setSpeed(2, speed2);
+        try {
+            tsi.setSpeed(1, speed1);
+            tsi.setSpeed(2, speed2);
 
-        trainThreads[0] = new Thread(new TrainRunnable(1, speed1));
-        trainThreads[1] = new Thread(new TrainRunnable(2, speed2));
-        for (int i = 0; i < 2; i++) {
-            trainThreads[i].start();
+            trainThreads[0] = new Thread(new TrainRunnable(1, speed1));
+            trainThreads[1] = new Thread(new TrainRunnable(2, speed2));
+            for (int i = 0; i < 2; i++) {
+                trainThreads[i].start();
+            }
+        }
+        catch (CommandException e) {
+            e.printStackTrace();    // or only e.getMessage() for the error
+            System.exit(1);
         }
     }
-    catch (CommandException e) {
-        e.printStackTrace();    // or only e.getMessage() for the error
-        System.exit(1);
-    }
-  }
 
     private class TrainRunnable implements Runnable {
 
@@ -72,12 +72,12 @@ public class Lab1 {
                 int x = se.getXpos(); int y = se.getYpos();
                 try {
                     if (x == 14 && (y == 7 || y == 8)) {
-                            if (downwards) {
-                                tryEnterSharedTrack(1, 17, 7,
-                                        y == 7 ? TSimInterface.SWITCH_RIGHT: TSimInterface.SWITCH_LEFT);
-                            } else {
-                                releaseIfPossible(1);
-                            }
+                        if (downwards) {
+                            tryEnterSharedTrack(1, 17, 7,
+                                    y == 7 ? TSimInterface.SWITCH_RIGHT: TSimInterface.SWITCH_LEFT);
+                        } else {
+                            releaseIfPossible(1);
+                        }
                     } else if (x == 11 && (y == 7 || y == 8)) {
                         if (downwards) {
                             releaseIfPossible(5);
