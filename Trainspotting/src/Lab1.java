@@ -45,7 +45,7 @@ public class Lab1 {
             this.id = id;
             this.speed = speed;
             this.downwards = id == 1;
-            heldSemaphores = new ArrayList<>();
+            heldSemaphores = new ArrayList<Integer>();
 
         }
 
@@ -73,8 +73,7 @@ public class Lab1 {
                 try {
                     if (x == 14 && (y == 7 || y == 8)) {
                             if (downwards) {
-                                tryEnterSharedTrack(1);
-                                Lab1.this.tsi.setSwitch(17, 7,
+                                tryEnterSharedTrack(1, 17, 7,
                                         y == 7 ? TSimInterface.SWITCH_RIGHT: TSimInterface.SWITCH_LEFT);
                             } else {
                                 releaseIfPossible(1);
@@ -103,14 +102,12 @@ public class Lab1 {
                         if (downwards) {
                             releaseIfPossible(1);
                         } else {
-                            tryEnterSharedTrack(1);
-                            Lab1.this.tsi.setSwitch(15, 9,
+                            tryEnterSharedTrack(1, 15, 9,
                                     y == 10 ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
                         }
                     } else if (x == 7 && (y == 9 || y == 10)) {
                         if (downwards) {
-                            tryEnterSharedTrack(3);
-                            Lab1.this.tsi.setSwitch(4, 9,
+                            tryEnterSharedTrack(3, 4, 9,
                                     y == 9 ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
                         } else {
                             releaseIfPossible(3);
@@ -140,8 +137,7 @@ public class Lab1 {
                         if (downwards) {
                             releaseIfPossible(3);
                         } else {
-                            tryEnterSharedTrack(3);
-                            Lab1.this.tsi.setSwitch(3, 11,
+                            tryEnterSharedTrack(3, 3, 11,
                                     y == 13 ? TSimInterface.SWITCH_RIGHT : TSimInterface.SWITCH_LEFT);
                         }
                     }
@@ -173,6 +169,32 @@ public class Lab1 {
         }
 
         /**
+         * The calling Thread tries to acquire the given Semaphore and if it is successful the train is allowed
+         * to enter the shared track. To enter it flips the given switch to the given direction.
+         * Otherwise it is blocked until the Semaphore is released and the train stops until then.
+         *
+         * @param trackID The number of the Semaphore corresponding to the shared track.
+         * @param switchX The X-coordinate of the Switch corresponding to the shared track.
+         * @param switchY The Y-coordinate of the Switch corresponding to the shared track.
+         * @param dir The direction to flip the Switch in order to enter the shared track.
+         * @throws CommandException
+         * @throws InterruptedException
+         */
+        private void tryEnterSharedTrack(int trackID, int switchX, int switchY, int dir)
+                throws CommandException, InterruptedException {
+            if (!tracks[trackID].tryAcquire()) {
+                stopTrain();
+                tracks[trackID].acquire();
+                heldSemaphores.add(trackID);
+                Lab1.this.tsi.setSwitch(switchX, switchY, dir);
+                resumeTrain();
+            } else {
+                heldSemaphores.add(trackID);
+                Lab1.this.tsi.setSwitch(switchX, switchY, dir);
+            }
+        }
+
+        /**
          * Sets the speed of the train to 0 and puts the thread to sleep for a period of time depending on the train's
          * speed.
          *
@@ -193,12 +215,13 @@ public class Lab1 {
         }
 
         /**
-         * Called at a Stop, puts the calling Thread to sleep for 1s and changes direction of the train
+         * Called at a Stop, puts the calling Thread to sleep for 1s + the time it takes for the train to stop
+         * and changes direction of the train.
          *
          * @throws InterruptedException if the Thread is interrupted
          */
         private void waitAtStop() throws InterruptedException {
-            Thread.sleep(1000);
+            Thread.sleep(1000+ 2*20*speed);
             downwards = !downwards;
         }
 
