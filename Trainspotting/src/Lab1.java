@@ -4,12 +4,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+/**
+ * Represents the logic needed to run the simulation of Laboration 1 for the course TDA383
+ */
 public class Lab1 {
 
+    // Semaphores representing the different parts of the track only one train should be able to access without
+    // risk of accidents.
     private final Semaphore[] tracks;
+
+    // The threads responsible for logic for the different trains
     private final Thread[] trainThreads;
+
+    // The interface for the simulator, makes it possible to handle the trains.
     private TSimInterface tsi = TSimInterface.getInstance();
 
+    /**
+     * Creates a new instance of teh simulation-logic needed for lab1, using speeds given for the two trains.
+     * @param speed1 the speed for the first train.
+     * @param speed2 the speed for the second train
+     */
     public Lab1(Integer speed1, Integer speed2) {
 
         this.tracks = new Semaphore[6];
