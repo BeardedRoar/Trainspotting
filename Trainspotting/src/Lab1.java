@@ -21,8 +21,8 @@ public class Lab1 {
 
     /**
      * Creates a new instance of teh simulation-logic needed for lab1, using speeds given for the two trains.
-     * @param speed1 the speed for the first train.
-     * @param speed2 the speed for the second train
+     * @param speed1 the speed for the first train as an integer.
+     * @param speed2 the speed for the second train as an integer.
      */
     public Lab1(Integer speed1, Integer speed2) {
 
@@ -49,12 +49,27 @@ public class Lab1 {
         }
     }
 
+    /**
+     * A runnable representing the necessary logic needed to run a train.
+     * Will be able run parallel to another instance or another runnable.
+     */
     private class TrainRunnable implements Runnable {
 
         private final int id, speed;
+
+        // Represents the state of the train, is it going "downwards" in the map.
+        // If true, train goes downwards, if false the train goes upwards.
         private boolean downwards;
+
+        // List for remembering which semaphores are hold, and thereby could be released.
         private List<Integer> heldSemaphores;
 
+        /**
+         * Constructor for the runnable, needing an identifier of the train, given as a unique integer and must
+         * match the id the train is given by the simulator.
+         * @param id the identification of the train. Must match the id given by the simulator.
+         * @param speed the speed of the train.
+         */
         public TrainRunnable(int id, int speed){
             this.id = id;
             this.speed = speed;
