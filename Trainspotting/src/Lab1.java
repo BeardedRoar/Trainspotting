@@ -25,7 +25,7 @@ public class Lab1 {
      * @param speed2 the speed for the second train as an integer.
      */
     public Lab1(Integer speed1, Integer speed2) {
-
+        // Initiate the list and the semaphores.
         this.tracks = new Semaphore[6];
         this.trainThreads = new Thread[2];
 
@@ -34,6 +34,7 @@ public class Lab1 {
         }
 
         try {
+            // Start the trains
             tsi.setSpeed(1, speed1);
             tsi.setSpeed(2, speed2);
 
