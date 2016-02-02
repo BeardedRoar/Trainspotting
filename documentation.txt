@@ -1,0 +1,48 @@
+Each part of the track where a collision between the trains is possible is represented by a semaphore. The trains are
+handled by an individual Runnable which alternates between waiting for, and handling a sensorEvent. When a train passes
+a sensor a sensorEvent is generated. Depending on the train's direction and available semaphores the Runnable steers 
+the train. If a track is occupied the Runnable will either direct it to another track or stop it until the track is 
+available again. The runnables also keeps track of which semaphores are currently held and the trains will always try 
+to take the shortest route if possible
+
+
+We achieve mutual exclution by making sure that the two trains cannot enter the same part of the track at the same time. 
+This is performed by the methods tryEnterCriticalSection and tryEnterFastTrack. For a train to enter a track it first
+passes a sensor which checks if the upcoming part is unoccupied, if it is the Runnable aquires its corresponding semaphore
+and adds it to a list of held semaphores. If it is occupied and there is a parallel track the train enters that. Otherwise
+it waits for the track to become available. In the case of tryEnterFastTrack this is done by calling tryAcquire for the 
+semaphore linked to that part of the track, the train is guided by setting a switch according to the success of tryAcquire.
+
+In the case of tryEnterCriticalSection the Runnable first calls TryAcquire and if it fails it stops the train and then
+waits until the track is available by calling aquire on the semaphore which blocks the thread until it is available.
+
+The only possibility of starvation is if a train waits for permission to enter a shared track and is never allowed entrance.
+Since a train will always release the semaphore after it leaves the shared track this cannot happen.
+
+The only possibilities of a deadlock would be if both train were waiting to enter the same track or if both trains were 
+trying to enter the track the other train currently occupies. The first possibility cannot happen since the only way to 
+wait for entrance to a track is if the other train holds that semaphore and thus that train is allowed to enter the track.
+the other possibility cannot happen since there are parallel tracks and a train will always enter one of these.
+
+
+There are sensors placed at the end of the tracks and before and after each critical section and parallel track. 
+We tried to lower the amount of sensors by letting some sensors handle both exiting a track and trying to enter
+a new track depending on the train's direction. Therefore they both has to be as close as possible to the switch to allow 
+entrance for a new train as soon as possible but still far away enough for the trains to be able to stop from 
+maximum speed. From this we came up with a maximum speed of 20 which allowed for a resonable placement
+of the sensors. The placement of the sensors is not entirely optimized, they are placed either next to or on top
+of each other in pairs to simplify the code. It would also have been possible to make it easier for the fast train
+to pass the slow train by placing more sensors and not letting them do multiple things. If we had access to the 
+simulation speed we would also be able to use a higher maximum speed by calculating when a train needed to start
+slowing down.
+
+
+The critical sections are the six different parts of the fast track and the crossing of the fast and slow track. These are
+the only parts the train either has to pass to proceed or prefers to pass since it is shorter. Each other track is only 
+chosen in the case that the other train currently occupies its parallel track. Therefore it is not possible for both 
+trains to try to enter these tracks.
+
+
+We tested our solution by verifying its correctness and then running the program on for extended periods of time on
+different trainspeeds. 
+
