@@ -81,8 +81,8 @@ public class Lab1 {
                 if (id == 2){
                     tracks[4].acquire();
                     heldSemaphores.add(4);
-                    tsi.setSpeed(id, speed);
                 }
+                tsi.setSpeed(id, speed);
 
                 // The logic while the trains are running.
                 // First await the next sensor, then handle that sensor-event and repeat.
