@@ -115,6 +115,8 @@ public class Lab1 {
 
                 // Each block represents one sensor or two parallel sensors, and is handled different depending on the
                 // direction of the train, as this dictates if and what track it has left or tries to enter.
+
+                // Which sensor that has been passed is found out by it's x and y coordinates.
                 int x = se.getXpos(); int y = se.getYpos();
                 if (x == 14 && (y == 7 || y == 8)) {
                     // Parallel sensors on tracks 0, train either trying to enter or has just left track 1.
@@ -299,8 +301,6 @@ public class Lab1 {
                 heldSemaphores.remove((Integer)semaphore);
             }
         }
-
-
 
     }
 }
