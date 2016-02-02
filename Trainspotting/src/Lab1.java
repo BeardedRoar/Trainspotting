@@ -296,7 +296,7 @@ public class Lab1 {
         private void releaseSemaphoreIfNeeded(int semaphore){
             if(heldSemaphores.contains(semaphore)) {
                 tracks[semaphore].release();
-                heldSemaphores.remove(semaphore);
+                heldSemaphores.remove((Integer)semaphore);
             }
         }
 
