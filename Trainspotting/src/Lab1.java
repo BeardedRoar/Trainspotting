@@ -117,36 +117,55 @@ public class Lab1 {
                 // direction of the train, as this dictates if and what track it has left or tries to enter.
 
                 // Which sensor that has been passed is found out by it's x and y coordinates.
-                int x = se.getXpos(); int y = se.getYpos();
-                if (x == 14 && (y == 7 || y == 8)) {
-                    // Parallel sensors on tracks 0, train either trying to enter or has just left track 1.
-                    if (downwards) {
-                        tryEnterCriticalSection(1, 17, 7,
-                                y == 7 ? TSimInterface.SWITCH_RIGHT: TSimInterface.SWITCH_LEFT);
-                    } else {
-                        releaseSemaphoreIfNeeded(1);
-                    }
-                } else if (x == 11 && (y == 7 || y == 8)) {
-                    if (downwards) {
-                        releaseSemaphoreIfNeeded(5);
-                    } else {
-                        tryEnterCriticalSection(5);
-                    }
-                } else if (x == 14 && (y == 3 || y == 5)) {
+                int x = se.getXpos();
+                int y = se.getYpos();
+
+                if (x == 14 && (y == 3 || y == 5)) {
+                    // Sensor 0
                     if (!downwards) {
                         stopTrain();
                         waitAtStop();
                         resumeTrain();
                     }
+                } else if (y == 5 && (x == 9 || x == 6)) {
+                    // Sensor 1
+                    if (downwards) {
+                        tryEnterCriticalSection(5);
+                    } else {
+                        releaseSemaphoreIfNeeded(5);
+                    }
+                } else if (x == 11 && (y == 7 || y == 8)) {
+                    // Sensor 2
+                    if (downwards) {
+                        releaseSemaphoreIfNeeded(5);
+                    } else {
+                        tryEnterCriticalSection(5);
+                    }
+                } else if (x == 14 && (y == 7 || y == 8)) {
+                    // Sensor 3
+                    // Parallel sensors on tracks 0, train either trying to enter or has just left track 1.
+                    if (downwards) {
+                        tryEnterCriticalSection(1, 17, 7,
+                                y == 7 ? TSimInterface.SWITCH_RIGHT : TSimInterface.SWITCH_LEFT);
+                    } else {
+                        releaseSemaphoreIfNeeded(1);
+                    }
                 } else if (x == 18 && y == 7) {
+                    // Sensor 3
                     if (downwards) {
                         releaseSemaphoreIfNeeded(0);
-                        tryEnterFastTrack(2,15,9,TSimInterface.SWITCH_RIGHT,TSimInterface.SWITCH_LEFT);
+                    } else {
+                        tryEnterFastTrack(0, 17, 7, TSimInterface.SWITCH_LEFT, TSimInterface.SWITCH_RIGHT);
+                    }
+                } else if (x == 17 && y == 9){
+                    // Sensor 4
+                    if (downwards){
+                        tryEnterFastTrack(2, 15, 9, TSimInterface.SWITCH_RIGHT, TSimInterface.SWITCH_LEFT);
                     } else {
                         releaseSemaphoreIfNeeded(2);
-                        tryEnterFastTrack(0,17,7,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
                     }
                 } else if (x == 12 && (y == 9 || y == 10)) {
+                    // Sensor 5
                     if (downwards) {
                         releaseSemaphoreIfNeeded(1);
                     } else {
@@ -154,19 +173,15 @@ public class Lab1 {
                                 y == 10 ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
                     }
                 } else if (x == 7 && (y == 9 || y == 10)) {
+                    // Sensor 6
                     if (downwards) {
                         tryEnterCriticalSection(3, 4, 9,
                                 y == 9 ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
                     } else {
                         releaseSemaphoreIfNeeded(3);
                     }
-                } else if (y == 5 && (x == 9 || x == 6)) {
-                    if (downwards) {
-                        tryEnterCriticalSection(5);
-                    } else {
-                        releaseSemaphoreIfNeeded(5);
-                    }
-                } else if (x == 1 && y == 10) {
+                }  else if (x == 1 && y == 10) {
+                    // Sensor 7
                     if (downwards) {
                         releaseSemaphoreIfNeeded(2);
                         tryEnterFastTrack(4,3,11,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
@@ -174,19 +189,20 @@ public class Lab1 {
                         releaseSemaphoreIfNeeded(4);
                         tryEnterFastTrack(2,4,9,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
                     }
-                } else if (x == 14 && (y == 13 || y == 11)) {
-                    if (downwards) {
-                        stopTrain();
-                        waitAtStop();
-                        resumeTrain();
-                    }
-
                 } else if (x == 6 && (y == 13 || y == 11)) {
+                    // Sensor 8
                     if (downwards) {
                         releaseSemaphoreIfNeeded(3);
                     } else {
                         tryEnterCriticalSection(3, 3, 11,
                                 y == 13 ? TSimInterface.SWITCH_RIGHT : TSimInterface.SWITCH_LEFT);
+                    }
+                } else if (x == 14 && (y == 13 || y == 11)) {
+                    // Sensor 9
+                    if (downwards) {
+                        stopTrain();
+                        waitAtStop();
+                        resumeTrain();
                     }
                 }
             }
