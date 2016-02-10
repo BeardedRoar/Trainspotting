@@ -13,7 +13,7 @@ public class Lab2 {
 
     // Monitors representing the different parts of the track only one train should be able to access without
     // risk of accidents.
-    private final ReentrantLock[] tracks;
+    private final TrackMonitor[] tracks;
 
     // The threads responsible for logic for the different trains
     private final Thread[] trainThreads;
@@ -28,11 +28,11 @@ public class Lab2 {
      */
     public Lab2(Integer speed1, Integer speed2) {
         // Initiate the list and the semaphores.
-        this.tracks = new ReentrantLock[6];
+        this.tracks = new TrackMonitor[6];
         this.trainThreads = new Thread[2];
 
         for (int i = 0; i < 6; i++) {
-            tracks[i] = new ReentrantLock();
+            tracks[i] = new TrackMonitor();
         }
 
         trainThreads[0] = new Thread(new TrainRunnable(1, speed1), "Train_0");
@@ -79,7 +79,7 @@ public class Lab2 {
                 // Initiates the trains, the train with id 2 starts on a critical part of the tracks,
                 // and must therefore be given the responding semaphore.
                 if (id == 2){
-                    tracks[4].lock();
+                    tracks[4].enter();
                     heldLocks.add(4);
                 }
                 tsi.setSpeed(id, speed);
@@ -217,13 +217,9 @@ public class Lab2 {
          * @throws InterruptedException if the Thread is interrupted.
          */
         private void tryEnterCriticalSection(int trackID) throws CommandException, InterruptedException {
-            if (tracks[trackID].isLocked()) {
-                stopTrain();
-                tracks[trackID].lock();
-                resumeTrain();
-            } else {
-                tracks[trackID].lock();
-            }
+            stopTrain();
+            tracks[trackID].enter();
+            resumeTrain();
             heldLocks.add(trackID);
         }
 
@@ -241,15 +237,10 @@ public class Lab2 {
          */
         private void tryEnterCriticalSection(int trackID, int switchX, int switchY, int dir)
                 throws CommandException, InterruptedException {
-            if (tracks[trackID].isLocked()) {
-                stopTrain();
-                tracks[trackID].lock();
-                Lab2.this.tsi.setSwitch(switchX, switchY, dir);
-                resumeTrain();
-            } else {
-                tracks[trackID].lock();
-                Lab2.this.tsi.setSwitch(switchX, switchY, dir);
-            }
+            stopTrain();
+            tracks[trackID].enter();
+            Lab2.this.tsi.setSwitch(switchX, switchY, dir);
+            resumeTrain();
             heldLocks.add(trackID);
         }
 
@@ -265,8 +256,8 @@ public class Lab2 {
          * @throws CommandException if the Switch cannot be flipped.
          */
         private void tryEnterFastTrack(int trackID, int switchX, int switchY, int successDir, int failDir) throws CommandException {
-            if(!tracks[trackID].isLocked()){
-                tracks[trackID].lock();
+            if(tracks[trackID].isEmpty()){
+                tracks[trackID].enter();
                 heldLocks.add(trackID);
                 Lab2.this.tsi.setSwitch(switchX, switchY, successDir);
             } else {
@@ -313,7 +304,7 @@ public class Lab2 {
          */
         private void releaseTrack(int trackID){
             if(heldLocks.contains(trackID)) {
-                tracks[trackID].unlock();
+                tracks[trackID].leave();
                 heldLocks.remove((Integer)trackID);
             }
         }
@@ -348,6 +339,10 @@ public class Lab2 {
             } finally {
                 lock.unlock();
             }
+        }
+
+        public boolean isEmpty(){
+            return count == 0;
         }
 
     }
