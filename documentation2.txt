@@ -1,0 +1,12 @@
+There are three methods in the monitor, enter, leave and isEmpty.
+Enter is called whenever a train wants to enter a track and blocks the thread until the train is allowed to enter the 
+monitored track. 
+
+Leave is called whenever a train leaves a track and unlocks the monitored track for other trains.
+
+IsEmpty returns a boolean telling whether or not the monitored track is empty. It is used to determine if a train can use
+the fast track or has to use the slow one.
+
+We are using one conditional variable in our monitor. At least one is needed so another thread can use the monitor's 
+methods while the first one is waiting for something in order to avoid deadlocks. We did not need more then one 
+because a train should always be allowed to leave a track if it was allowed to enter another. 
