@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Represents the logic needed to run the simulation of Laboration 1 for the course TDA383
+ * Represents the logic needed to run the simulation of Laboration 2 for the course TDA383
  */
 public class Lab2 {
 
@@ -77,7 +77,7 @@ public class Lab2 {
         public void run() {
             try {
                 // Initiates the trains, the train with id 2 starts on a critical part of the tracks,
-                // and must therefore be given the responding semaphore.
+                // and must therefore be given the responding monitor.
                 if (id == 2){
                     tracks[4].enter();
                     heldLocks.add(4);
@@ -208,7 +208,7 @@ public class Lab2 {
         }
 
         /**
-         * The calling Thread tries to acquire the given Semaphore and if it is successful the train is allowed
+         * The calling Thread tries to acquire the given monitor and if it is successful the train is allowed
          * to enter the shared track. Otherwise it is blocked until the Semaphore is released and the train stops
          * until then.
          *
@@ -224,11 +224,11 @@ public class Lab2 {
         }
 
         /**
-         * The calling Thread tries to acquire the given Semaphore and if it is successful the train is allowed
+         * The calling Thread tries to acquire the given monitor and if it is successful the train is allowed
          * to enter the shared track. To enter it flips the given switch to the given direction.
          * Otherwise it is blocked until the Semaphore is released and the train stops until then.
          *
-         * @param trackID The number of the Semaphore corresponding to the shared track.
+         * @param trackID The id of the monitor corresponding to the shared track.
          * @param switchX The X-coordinate of the Switch corresponding to the shared track.
          * @param switchY The Y-coordinate of the Switch corresponding to the shared track.
          * @param dir The direction to flip the Switch in order to enter the shared track.
@@ -297,10 +297,10 @@ public class Lab2 {
         }
 
         /**
-         * Checks if the thread is holding the given Semaphore and if it is, releases it and removes it from the list
+         * Checks if the thread is holding the given Track and if it is, releases it and removes it from the list
          * of held semaphores.
          *
-         * @param trackID The Semaphore to be released if held.
+         * @param trackID The Track to be released if held.
          */
         private void releaseTrack(int trackID){
             if(heldLocks.contains(trackID)) {
@@ -311,12 +311,19 @@ public class Lab2 {
 
     }
 
+    /**
+     * Class acting as a monitor for the tracks
+     */
     private class TrackMonitor {
+        // Lock and condition to make the monitor work
         final Lock lock = new ReentrantLock();
         final Condition empty = lock.newCondition();
 
         int count = 0;
 
+        /**
+         * Called when a train wants to enter the monitored track.
+         */
         public void enter(){
             lock.lock();
             try {
@@ -331,6 +338,9 @@ public class Lab2 {
             }
         }
 
+        /**
+         * Must be called when a train leaves the monitored track
+         */
         public void leave(){
             lock.lock();
             try {
@@ -341,6 +351,10 @@ public class Lab2 {
             }
         }
 
+        /**
+         * Returns whether the monitored track is empty.
+         * @return true if the track is empty.
+         */
         public boolean isEmpty(){
             return count == 0;
         }
