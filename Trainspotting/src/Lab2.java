@@ -2,16 +2,16 @@ import TSim.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Represents the logic needed to run the simulation of Laboration 1 for the course TDA383
  */
-public class Lab1 {
+public class Lab2 {
 
-    // Semaphores representing the different parts of the track only one train should be able to access without
+    // Monitors representing the different parts of the track only one train should be able to access without
     // risk of accidents.
-    private final Semaphore[] tracks;
+    private final ReentrantLock[] tracks;
 
     // The threads responsible for logic for the different trains
     private final Thread[] trainThreads;
@@ -20,26 +20,26 @@ public class Lab1 {
     private TSimInterface tsi = TSimInterface.getInstance();
 
     /**
-     * Creates a new instance of teh simulation-logic needed for lab1, using speeds given for the two trains.
+     * Creates a new instance of teh simulation-logic needed for lab2, using speeds given for the two trains.
      * @param speed1 the speed for the first train as an integer.
      * @param speed2 the speed for the second train as an integer.
      */
-    public Lab1(Integer speed1, Integer speed2) {
+    public Lab2(Integer speed1, Integer speed2) {
         // Initiate the list and the semaphores.
-        this.tracks = new Semaphore[6];
+        this.tracks = new ReentrantLock[6];
         this.trainThreads = new Thread[2];
 
         for (int i = 0; i < 6; i++) {
-            tracks[i] = new Semaphore(1);
+            tracks[i] = new ReentrantLock();
         }
 
         trainThreads[0] = new Thread(new TrainRunnable(1, speed1), "Train_0");
-        trainThreads[1] = new Thread(new TrainRunnable(2, speed2), "Train_2");
+        trainThreads[1] = new Thread(new TrainRunnable(2, speed2), "Train_1");
 
         for (int i = 0; i < 2; i++) {
             trainThreads[i].start();
         }
-        
+
     }
 
     /**
@@ -54,9 +54,7 @@ public class Lab1 {
         // If true, train goes downwards, if false the train goes upwards.
         private boolean downwards;
 
-        // List for remembering which semaphores are hold, and thereby could be released.
-        private List<Integer> heldSemaphores;
-
+        private final List<Integer> heldLocks;
         /**
          * Constructor for the runnable, needing an identifier of the train, given as a unique integer and must
          * match the id the train is given by the simulator.
@@ -69,7 +67,7 @@ public class Lab1 {
 
             // The train with id 1 starts by going downwards, while train number 2 starts by going upwards.
             this.downwards = id == 1;
-            heldSemaphores = new ArrayList<Integer>();
+            heldLocks = new ArrayList<Integer>();
 
         }
 
@@ -79,23 +77,22 @@ public class Lab1 {
                 // Initiates the trains, the train with id 2 starts on a critical part of the tracks,
                 // and must therefore be given the responding semaphore.
                 if (id == 2){
-                    tracks[4].acquire();
-                    heldSemaphores.add(4);
+                    tracks[4].lock();
+                    heldLocks.add(4);
                 }
                 tsi.setSpeed(id, speed);
 
                 // The logic while the trains are running.
                 // First await the next sensor, then handle that sensor-event and repeat.
                 while (true) {
-                    SensorEvent se = Lab1.this.tsi.getSensor(id);
+                    SensorEvent se = Lab2.this.tsi.getSensor(id);
                     handleSensorEvent(se);
                 }
 
                 // Semaphores are not released on an exception as the train still occupy the responding track,
                 // and such could make the accident worse by letting another train collide with a still-standing train.
-            } catch (CommandException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
+            } catch (CommandException | InterruptedException e) {
+                System.exit(1);
                 e.printStackTrace();
             }
         }
@@ -132,12 +129,12 @@ public class Lab1 {
                     if (downwards) {
                         tryEnterCriticalSection(5);
                     } else {
-                        releaseSemaphoreIfNeeded(5);
+                        releaseTrack(5);
                     }
                 } else if (x == 11 && (y == 7 || y == 8)) {
                     // Sensor 2
                     if (downwards) {
-                        releaseSemaphoreIfNeeded(5);
+                        releaseTrack(5);
                     } else {
                         tryEnterCriticalSection(5);
                     }
@@ -148,12 +145,12 @@ public class Lab1 {
                         tryEnterCriticalSection(1, 17, 7,
                                 y == 7 ? TSimInterface.SWITCH_RIGHT : TSimInterface.SWITCH_LEFT);
                     } else {
-                        releaseSemaphoreIfNeeded(1);
+                        releaseTrack(1);
                     }
                 } else if (x == 18 && y == 7) {
                     // Sensor 3
                     if (downwards) {
-                        releaseSemaphoreIfNeeded(0);
+                        releaseTrack(0);
                     } else {
                         tryEnterFastTrack(0, 17, 7, TSimInterface.SWITCH_LEFT, TSimInterface.SWITCH_RIGHT);
                     }
@@ -162,12 +159,12 @@ public class Lab1 {
                     if (downwards){
                         tryEnterFastTrack(2, 15, 9, TSimInterface.SWITCH_RIGHT, TSimInterface.SWITCH_LEFT);
                     } else {
-                        releaseSemaphoreIfNeeded(2);
+                        releaseTrack(2);
                     }
                 } else if (x == 12 && (y == 9 || y == 10)) {
                     // Sensor 5
                     if (downwards) {
-                        releaseSemaphoreIfNeeded(1);
+                        releaseTrack(1);
                     } else {
                         tryEnterCriticalSection(1, 15, 9,
                                 y == 10 ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
@@ -178,21 +175,21 @@ public class Lab1 {
                         tryEnterCriticalSection(3, 4, 9,
                                 y == 9 ? TSimInterface.SWITCH_LEFT : TSimInterface.SWITCH_RIGHT);
                     } else {
-                        releaseSemaphoreIfNeeded(3);
+                        releaseTrack(3);
                     }
                 }  else if (x == 1 && y == 10) {
                     // Sensor 7
                     if (downwards) {
-                        releaseSemaphoreIfNeeded(2);
+                        releaseTrack(2);
                         tryEnterFastTrack(4,3,11,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
                     } else {
-                        releaseSemaphoreIfNeeded(4);
+                        releaseTrack(4);
                         tryEnterFastTrack(2,4,9,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
                     }
                 } else if (x == 6 && (y == 13 || y == 11)) {
                     // Sensor 8
                     if (downwards) {
-                        releaseSemaphoreIfNeeded(3);
+                        releaseTrack(3);
                     } else {
                         tryEnterCriticalSection(3, 3, 11,
                                 y == 13 ? TSimInterface.SWITCH_RIGHT : TSimInterface.SWITCH_LEFT);
@@ -218,14 +215,14 @@ public class Lab1 {
          * @throws InterruptedException if the Thread is interrupted.
          */
         private void tryEnterCriticalSection(int trackID) throws CommandException, InterruptedException {
-            if (!tracks[trackID].tryAcquire()) {
+            if (tracks[trackID].isLocked()) {
                 stopTrain();
-                tracks[trackID].acquire();
-                heldSemaphores.add(trackID);
+                tracks[trackID].lock();
                 resumeTrain();
             } else {
-                heldSemaphores.add(trackID);
+                tracks[trackID].lock();
             }
+            heldLocks.add(trackID);
         }
 
         /**
@@ -242,16 +239,16 @@ public class Lab1 {
          */
         private void tryEnterCriticalSection(int trackID, int switchX, int switchY, int dir)
                 throws CommandException, InterruptedException {
-            if (!tracks[trackID].tryAcquire()) {
+            if (tracks[trackID].isLocked()) {
                 stopTrain();
-                tracks[trackID].acquire();
-                heldSemaphores.add(trackID);
-                Lab1.this.tsi.setSwitch(switchX, switchY, dir);
+                tracks[trackID].lock();
+                Lab2.this.tsi.setSwitch(switchX, switchY, dir);
                 resumeTrain();
             } else {
-                heldSemaphores.add(trackID);
-                Lab1.this.tsi.setSwitch(switchX, switchY, dir);
+                tracks[trackID].lock();
+                Lab2.this.tsi.setSwitch(switchX, switchY, dir);
             }
+            heldLocks.add(trackID);
         }
 
         /**
@@ -266,11 +263,12 @@ public class Lab1 {
          * @throws CommandException if the Switch cannot be flipped.
          */
         private void tryEnterFastTrack(int trackID, int switchX, int switchY, int successDir, int failDir) throws CommandException {
-            if(tracks[trackID].tryAcquire()){
-                Lab1.this.tsi.setSwitch(switchX, switchY, successDir);
-                heldSemaphores.add(trackID);
+            if(!tracks[trackID].isLocked()){
+                tracks[trackID].lock();
+                heldLocks.add(trackID);
+                Lab2.this.tsi.setSwitch(switchX, switchY, successDir);
             } else {
-                Lab1.this.tsi.setSwitch(switchX, switchY,failDir);
+                Lab2.this.tsi.setSwitch(switchX, switchY,failDir);
             }
         }
 
@@ -282,7 +280,7 @@ public class Lab1 {
          * @throws CommandException if speed cannot be set due to illegal id, illegal speed or a crash.
          */
         private void stopTrain() throws InterruptedException, CommandException {
-            Lab1.this.tsi.setSpeed(id, 0);
+            Lab2.this.tsi.setSpeed(id, 0);
         }
 
         /**
@@ -291,7 +289,7 @@ public class Lab1 {
          * @throws CommandException if speed cannot be set due to illegal id, illegal speed or a crash.
          */
         private void resumeTrain() throws CommandException {
-            Lab1.this.tsi.setSpeed(id, ((downwards == (id == 1)) ? speed : -speed));
+            Lab2.this.tsi.setSpeed(id, ((downwards == (id == 1)) ? speed : -speed));
         }
 
         /**
@@ -309,12 +307,12 @@ public class Lab1 {
          * Checks if the thread is holding the given Semaphore and if it is, releases it and removes it from the list
          * of held semaphores.
          *
-         * @param semaphore The Semaphore to be released if held.
+         * @param trackID The Semaphore to be released if held.
          */
-        private void releaseSemaphoreIfNeeded(int semaphore){
-            if(heldSemaphores.contains(semaphore)) {
-                tracks[semaphore].release();
-                heldSemaphores.remove((Integer)semaphore);
+        private void releaseTrack(int trackID){
+            if(heldLocks.contains(trackID)) {
+                tracks[trackID].unlock();
+                heldLocks.remove((Integer)trackID);
             }
         }
 
