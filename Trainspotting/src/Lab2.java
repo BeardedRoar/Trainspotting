@@ -2,6 +2,8 @@ import TSim.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -313,6 +315,38 @@ public class Lab2 {
             if(heldLocks.contains(trackID)) {
                 tracks[trackID].unlock();
                 heldLocks.remove((Integer)trackID);
+            }
+        }
+
+    }
+
+    private class TrackMonitor {
+        final Lock lock = new ReentrantLock();
+        final Condition empty = lock.newCondition();
+
+        int count = 0;
+
+        public void enter(){
+            lock.lock();
+            try {
+                while (count != 0){
+                    empty.await();
+                }
+                count++;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public void leave(){
+            lock.lock();
+            try {
+                count = 0;
+                empty.signal();
+            } finally {
+                lock.unlock();
             }
         }
 
