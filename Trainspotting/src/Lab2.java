@@ -256,8 +256,7 @@ public class Lab2 {
          * @throws CommandException if the Switch cannot be flipped.
          */
         private void tryEnterFastTrack(int trackID, int switchX, int switchY, int successDir, int failDir) throws CommandException {
-            if(tracks[trackID].isEmpty()){
-                tracks[trackID].enter();
+            if(tracks[trackID].tryEnter()){
                 heldLocks.add(trackID);
                 Lab2.this.tsi.setSwitch(switchX, switchY, successDir);
             } else {
@@ -357,6 +356,19 @@ public class Lab2 {
          */
         public boolean isEmpty(){
             return count == 0;
+        }
+
+        public boolean tryEnter() {
+            lock.lock();
+            try {
+                if (count != 0) {
+                    lock.unlock();
+                    return false;
+                }
+                enter();
+            } finally {
+                lock.unlock();
+            }
         }
 
     }
