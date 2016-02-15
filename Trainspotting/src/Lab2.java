@@ -369,6 +369,7 @@ public class Lab2 {
             } finally {
                 lock.unlock();
             }
+            return true;
         }
 
     }
