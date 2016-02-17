@@ -66,3 +66,14 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+# Erlang
+.eunit
+deps
+*.o
+*.beam
+*.plt
+erl_crash.dump
+grm.erl
+lex.erl
+
+
