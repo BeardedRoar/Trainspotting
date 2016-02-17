@@ -259,7 +259,7 @@ public class Lab2 {
          * @param failDir    The direction to flip the Switch to in order to enter the slow track.
          * @throws CommandException if the Switch cannot be flipped.
          */
-        private void tryEnterFastTrack(int trackID, int switchX, int switchY, int successDir, int failDir) throws CommandException {
+        private void tryEnterFastTrack(int trackID, int switchX, int switchY, int successDir, int failDir) throws CommandException, InterruptedException {
             if (tracks[trackID].tryEnter()) {
                 heldLocks.add(trackID);
                 Lab2.this.tsi.setSwitch(switchX, switchY, successDir);
@@ -364,12 +364,20 @@ public class Lab2 {
         }
 
         public boolean tryEnter() {
-            if (count != 0) {
-                return false;
+            lock.lock();
+            try {
+                if (count != 0) {
+                    lock.unlock();
+                    return false;
+                }
+                count++;
+                empty.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
             }
-            enter();
             return true;
-
         }
     }
 }
