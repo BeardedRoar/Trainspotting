@@ -365,14 +365,13 @@ public class Lab2 {
 
         public boolean tryEnter() {
             lock.lock();
-            boolean success = count == 0;
+            final boolean success = count == 0;
             try {
                 if (success) {
                     count++;
-                    empty.await();
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } finally {
+                lock.unlock();
             }
 
             return success;
