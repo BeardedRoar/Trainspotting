@@ -23,6 +23,7 @@ public class Lab2 {
 
     /**
      * Creates a new instance of teh simulation-logic needed for lab2, using speeds given for the two trains.
+     *
      * @param speed1 the speed for the first train as an integer.
      * @param speed2 the speed for the second train as an integer.
      */
@@ -57,13 +58,15 @@ public class Lab2 {
         private boolean downwards;
 
         private final List<Integer> heldLocks;
+
         /**
          * Constructor for the runnable, needing an identifier of the train, given as a unique integer and must
          * match the id the train is given by the simulator.
-         * @param id the identification of the train. Must match the id given by the simulator.
+         *
+         * @param id    the identification of the train. Must match the id given by the simulator.
          * @param speed the speed of the train.
          */
-        public TrainRunnable(int id, int speed){
+        public TrainRunnable(int id, int speed) {
             this.id = id;
             this.speed = speed;
 
@@ -78,7 +81,7 @@ public class Lab2 {
             try {
                 // Initiates the trains, the train with id 2 starts on a critical part of the tracks,
                 // and must therefore be given the responding monitor.
-                if (id == 2){
+                if (id == 2) {
                     tracks[4].enter();
                     heldLocks.add(4);
                 }
@@ -102,6 +105,7 @@ public class Lab2 {
         /**
          * Handles a sensor event according to the state of the train passing the sensor and the state of track
          * it tries to enter.
+         *
          * @param se the sensor-event to handle
          * @throws InterruptedException in case the thread is interrupted while the event is still being handled.
          */
@@ -156,9 +160,9 @@ public class Lab2 {
                     } else {
                         tryEnterFastTrack(0, 17, 7, TSimInterface.SWITCH_LEFT, TSimInterface.SWITCH_RIGHT);
                     }
-                } else if (x == 17 && y == 9){
+                } else if (x == 17 && y == 9) {
                     // Sensor 4
-                    if (downwards){
+                    if (downwards) {
                         tryEnterFastTrack(2, 15, 9, TSimInterface.SWITCH_RIGHT, TSimInterface.SWITCH_LEFT);
                     } else {
                         releaseTrack(2);
@@ -179,14 +183,14 @@ public class Lab2 {
                     } else {
                         releaseTrack(3);
                     }
-                }  else if (x == 1 && y == 10) {
+                } else if (x == 1 && y == 10) {
                     // Sensor 7
                     if (downwards) {
                         releaseTrack(2);
-                        tryEnterFastTrack(4,3,11,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
+                        tryEnterFastTrack(4, 3, 11, TSimInterface.SWITCH_LEFT, TSimInterface.SWITCH_RIGHT);
                     } else {
                         releaseTrack(4);
-                        tryEnterFastTrack(2,4,9,TSimInterface.SWITCH_LEFT,TSimInterface.SWITCH_RIGHT);
+                        tryEnterFastTrack(2, 4, 9, TSimInterface.SWITCH_LEFT, TSimInterface.SWITCH_RIGHT);
                     }
                 } else if (x == 6 && (y == 13 || y == 11)) {
                     // Sensor 8
@@ -213,7 +217,7 @@ public class Lab2 {
          * until then.
          *
          * @param trackID The number of the Semaphore corresponding to the shared track.
-         * @throws CommandException if the train cannot be stopped or resumed.
+         * @throws CommandException     if the train cannot be stopped or resumed.
          * @throws InterruptedException if the Thread is interrupted.
          */
         private void tryEnterCriticalSection(int trackID) throws CommandException, InterruptedException {
@@ -231,7 +235,7 @@ public class Lab2 {
          * @param trackID The id of the monitor corresponding to the shared track.
          * @param switchX The X-coordinate of the Switch corresponding to the shared track.
          * @param switchY The Y-coordinate of the Switch corresponding to the shared track.
-         * @param dir The direction to flip the Switch in order to enter the shared track.
+         * @param dir     The direction to flip the Switch in order to enter the shared track.
          * @throws CommandException
          * @throws InterruptedException
          */
@@ -248,19 +252,19 @@ public class Lab2 {
          * The calling Thread tries to acquire the given Semaphore and if it is successful flips the given Switch so
          * the train can enter the fast track. Otherwise it flips it to enter the slow track.
          *
-         * @param trackID The number of the Semaphore corresponding to the fast track.
-         * @param switchX The X-coordinate of the Switch corresponding to the fast track.
-         * @param switchY The Y-coordinate of the Switch corresponding to the fast track.
+         * @param trackID    The number of the Semaphore corresponding to the fast track.
+         * @param switchX    The X-coordinate of the Switch corresponding to the fast track.
+         * @param switchY    The Y-coordinate of the Switch corresponding to the fast track.
          * @param successDir The direction to flip the Switch to in order to enter the fast track.
-         * @param failDir The direction to flip the Switch to in order to enter the slow track.
+         * @param failDir    The direction to flip the Switch to in order to enter the slow track.
          * @throws CommandException if the Switch cannot be flipped.
          */
         private void tryEnterFastTrack(int trackID, int switchX, int switchY, int successDir, int failDir) throws CommandException {
-            if(tracks[trackID].tryEnter()){
+            if (tracks[trackID].tryEnter()) {
                 heldLocks.add(trackID);
                 Lab2.this.tsi.setSwitch(switchX, switchY, successDir);
             } else {
-                Lab2.this.tsi.setSwitch(switchX, switchY,failDir);
+                Lab2.this.tsi.setSwitch(switchX, switchY, failDir);
             }
         }
 
@@ -269,7 +273,7 @@ public class Lab2 {
          * speed.
          *
          * @throws InterruptedException if the Thread is interrupted.
-         * @throws CommandException if speed cannot be set due to illegal id, illegal speed or a crash.
+         * @throws CommandException     if speed cannot be set due to illegal id, illegal speed or a crash.
          */
         private void stopTrain() throws InterruptedException, CommandException {
             Lab2.this.tsi.setSpeed(id, 0);
@@ -291,7 +295,7 @@ public class Lab2 {
          * @throws InterruptedException if the Thread is interrupted
          */
         private void waitAtStop() throws InterruptedException {
-            Thread.sleep(1000+ 2*20*speed);
+            Thread.sleep(1000 + 2 * 20 * speed);
             downwards = !downwards;
         }
 
@@ -301,10 +305,10 @@ public class Lab2 {
          *
          * @param trackID The Track to be released if held.
          */
-        private void releaseTrack(int trackID){
-            if(heldLocks.contains(trackID)) {
+        private void releaseTrack(int trackID) {
+            if (heldLocks.contains(trackID)) {
                 tracks[trackID].leave();
-                heldLocks.remove((Integer)trackID);
+                heldLocks.remove((Integer) trackID);
             }
         }
 
@@ -323,10 +327,10 @@ public class Lab2 {
         /**
          * Called when a train wants to enter the monitored track.
          */
-        public void enter(){
+        public void enter() {
             lock.lock();
             try {
-                while (count != 0){
+                while (count != 0) {
                     empty.await();
                 }
                 count++;
@@ -340,7 +344,7 @@ public class Lab2 {
         /**
          * Must be called when a train leaves the monitored track
          */
-        public void leave(){
+        public void leave() {
             lock.lock();
             try {
                 count = 0;
@@ -352,25 +356,20 @@ public class Lab2 {
 
         /**
          * Returns whether the monitored track is empty.
+         *
          * @return true if the track is empty.
          */
-        public boolean isEmpty(){
+        public boolean isEmpty() {
             return count == 0;
         }
 
         public boolean tryEnter() {
-            lock.lock();
-            try {
-                if (count != 0) {
-                    lock.unlock();
-                    return false;
-                }
-                enter();
-            } finally {
-                lock.unlock();
+            if (count != 0) {
+                return false;
             }
+            enter();
             return true;
-        }
 
+        }
     }
 }
