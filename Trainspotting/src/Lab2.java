@@ -365,19 +365,19 @@ public class Lab2 {
 
         public boolean tryEnter() {
             lock.lock();
+            boolean success = count == 0;
             try {
-                if (count != 0) {
-                    lock.unlock();
-                    return false;
+                if (success) {
+                    count++;
+                    empty.await();
                 }
-                count++;
-                empty.await();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
                 lock.unlock();
             }
-            return true;
+
+            return success;
         }
     }
 }
