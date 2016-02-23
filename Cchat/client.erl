@@ -25,13 +25,15 @@ handle(St, {connect, Server}) ->
     ServerAtom = list_to_atom(Server),
     Response = genserver:request(ServerAtom, Data),
     io:fwrite("Client received: ~p~n", [Response]),
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "Not implemented"}, St} ;
+    {reply, ok, #client_st{gui = St#client_st.gui, nick = St#client_st.nick, server = ServerAtom}} ;
+    % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Disconnect from server
 handle(St, disconnect) ->
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "Not implemented"}, St} ;
+	% Probably needs more code, but a beginning.
+	
+	{reply, ok, #client_st{gui = St#client_st.gui, nick = St#client_st.nick}} ;
+    % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 % Join channel
 handle(St, {join, Channel}) ->
@@ -51,13 +53,10 @@ handle(St, {msg_from_GUI, Channel, Msg}) ->
 %% Get current nick
 handle(St, whoami) ->
     {reply, St#client_st.nick, St} ;
-    %{reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Change nick
 handle(St, {nick, Nick}) ->
-	
-    {reply, ok, #client_st{gui = St#client_st.gui, nick = Nick}} ;
-    %{reply, {error, not_implemented, St#client_st.nick}, St} ;
+    {reply, ok, #client_st{gui = St#client_st.gui, nick = Nick, server = St#client_st.server}} ;
 
 %% Incoming message
 handle(St = #client_st { gui = GUIName }, {incoming_msg, Channel, Name, Msg}) ->
