@@ -7,7 +7,7 @@
 
 %% Produce initial state
 initial_state(Nick, GUIName) ->
-    #client_st { gui = GUIName, nick = Nick }.
+    #client_st { gui = GUIName, nick = Nick, server = "" }.
 
 %% ---------------------------------------------------------------------------
 
@@ -25,14 +25,14 @@ handle(St, {connect, Server}) ->
     ServerAtom = list_to_atom(Server),
     Response = genserver:request(ServerAtom, Data),
     io:fwrite("Client received: ~p~n", [Response]),
-    {reply, ok, #client_st{gui = St#client_st.gui, nick = St#client_st.nick, server = ServerAtom}} ;
+    {reply, ok, St#client_st{server = ServerAtom}} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Disconnect from server
 handle(St, disconnect) ->
 	% Probably needs more code, but a beginning.
 	
-	{reply, ok, #client_st{gui = St#client_st.gui, nick = St#client_st.nick}} ;
+	{reply, ok, St#client_st{server = ""}} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 % Join channel
@@ -56,7 +56,7 @@ handle(St, whoami) ->
 
 %% Change nick
 handle(St, {nick, Nick}) ->
-    {reply, ok, #client_st{gui = St#client_st.gui, nick = Nick, server = St#client_st.server}} ;
+    {reply, ok, St#client_st{nick = Nick}} ;
 
 %% Incoming message
 handle(St = #client_st { gui = GUIName }, {incoming_msg, Channel, Name, Msg}) ->
