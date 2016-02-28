@@ -68,7 +68,16 @@ handle(St, {join, Channel}) ->
 
 %% Leave channel
 handle(St, {leave, Channel}) ->
-    {reply, ok, St#client_st{channels = St#client_st.channels -- [Channel]}} ;
+	Joined = lists:member(Channel, St#client_st.channels),
+	if
+		Joined ->
+			Response = ok,
+			NewSt = St#client_st{channels = St#client_st.channels -- [Channel]};
+		true ->
+			Response = {error, user_not_joined, "You cannot leave a channel you have not joined"},
+			NewSt = St
+	end,
+    {reply, Response, NewSt} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 % Sending messages
