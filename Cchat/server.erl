@@ -7,7 +7,7 @@
 
 % Produce initial state
 initial_state(ServerName) ->
-    #server_st{}.
+    #server_st{name = ServerName, clients = [], channels = []}.
 
 %% ---------------------------------------------------------------------------
 
