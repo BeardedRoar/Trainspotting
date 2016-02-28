@@ -47,6 +47,10 @@ handle(St, disconnect) ->
 % Join channel
 handle(St, {join, Channel}) ->
 	io:fwrite("~p~n", [St#client_st.channels]),
+	io:fwrite("~p~n", [St#client_st.server]),
+	Data = {join, St#client_st.nick, Channel},
+    io:fwrite("Client is sending: ~p~n", [Data]),
+	Response = genserver:request(St#client_st.server, Data),
     {reply, ok, St#client_st{channels = [Channel|St#client_st.channels]}} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 

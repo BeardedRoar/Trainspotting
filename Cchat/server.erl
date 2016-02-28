@@ -19,12 +19,20 @@ initial_state(ServerName) ->
 %% and NewState is the new state of the server.
 
 handle(St, {connect, _ClientId, _Nick}) ->
-	io:fwrite("~p~n", [St#server_st.clients]),
+	io:fwrite("~p~n", [_Nick]),
+	%%NewDict = dict:store(_Nick, _ClientId),
 	X = St#server_st{clients = [{_ClientId, _Nick}|St#server_st.clients]},
 	{reply, ok, X};
 
 handle(St, {disconnect, _ClientId, _Nick}) ->
 	X = St#server_st{clients = St#server_st.clients -- [{_ClientId, _Nick}]},
+	{reply, ok, X};
+
+handle(St, {join, Nick, Channel}) ->
+	io:fwrite("server received: ~p~n", [Nick]),
+	io:fwrite("server received: ~p~n", [Channel]),
+	X = St#server_st{channels = [{Nick}|St#server_st.clients]},
+	io:fwrite("~p~n", [St#server_st.channels]),
 	{reply, ok, X};
 	
 handle(St, Request) ->
