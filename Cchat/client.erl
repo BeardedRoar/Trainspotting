@@ -33,7 +33,8 @@ handle(St, {connect, Server}) ->
 %% Disconnect from server
 handle(St, disconnect) ->
 	% Probably needs more code, but a beginning.
-	
+	Data = {disconnect, self(), St#client_st.nick},
+	genserver:request(St#client_st.server, Data),
 	{reply, ok, St#client_st{server = ""}} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
