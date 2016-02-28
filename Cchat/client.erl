@@ -1,13 +1,14 @@
 -module(client).
 -export([handle/2, initial_state/2]).
 -include_lib("./defs.hrl").
+-incluse(stdlib).
 
 %% inititial_state/2 and handle/2 are used togetger with the genserver module,
 %% explained in the lecture about Generic server.
 
 %% Produce initial state
 initial_state(Nick, GUIName) ->
-    #client_st { gui = GUIName, nick = Nick, server = "" }.
+    #client_st { gui = GUIName, nick = Nick, server = "", channels = []}.
 
 %% ---------------------------------------------------------------------------
 
@@ -37,13 +38,14 @@ handle(St, disconnect) ->
 
 % Join channel
 handle(St, {join, Channel}) ->
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "Not implemented"}, St} ;
+	io:fwrite("~p~n", [St#client_st.channels]),
+    {reply, ok, St#client_st{channels = [Channel|St#client_st.channels]}} ;
+    % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Leave channel
 handle(St, {leave, Channel}) ->
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "Not implemented"}, St} ;
+    {reply, ok, St#client_st{channels = St#client_st.channels -- [Channel]}} ;
+    % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 % Sending messages
 handle(St, {msg_from_GUI, Channel, Msg}) ->
