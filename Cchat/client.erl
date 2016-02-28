@@ -78,7 +78,15 @@ handle(St, whoami) ->
 
 %% Change nick
 handle(St, {nick, Nick}) ->
-    {reply, ok, St#client_st{nick = Nick}} ;
+	case St#client_st.server of
+		"" ->
+			Result = ok,
+			NewSt = St#client_st{nick = Nick};
+		_Else ->
+			Result = {error, user_already_connected, "You cannot change nick while connected to a server"},
+			NewSt = St
+	end,
+    {reply, Result, NewSt} ;
 
 %% Incoming message
 handle(St = #client_st { gui = GUIName }, {incoming_msg, Channel, Name, Msg}) ->
