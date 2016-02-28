@@ -38,11 +38,23 @@ handle(St, {connect, Server}) ->
 
 %% Disconnect from server
 handle(St, disconnect) ->
-	% Probably needs more code, but a beginning.
-	Data = {disconnect, self(), St#client_st.nick},
-	genserver:request(St#client_st.server, Data),
-	{reply, ok, St#client_st{server = ""}} ;
-    % {reply, {error, not_implemented, "Not implemented"}, St} ;
+	case St#client_st.server of
+		 "" -> 
+			Result = {error, user_not_connected, "User not connected"},
+			NewSt = St;
+		_Else ->
+			if
+				0 < length(St#client_st.channels) ->
+					Result = {error, leave_channels_first, "Leave all channels before disconnecting"},
+					NewSt = St;
+				0 == length(St#client_st.channels) ->
+					%%Data = {disconnect, self(), St#client_st.nick},
+					%%genserver:request(St#client_st.server, Data),
+					Result = ok,
+					NewSt = St#client_st{server = ""}
+			end
+	end,
+	{reply, Result, NewSt};
 
 % Join channel
 handle(St, {join, Channel}) ->
