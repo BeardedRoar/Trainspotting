@@ -21,14 +21,20 @@ initial_state(Nick, GUIName) ->
 
 %% Connect to server
 handle(St, {connect, Server}) ->
-    Data = {connect, self(), St#client_st.nick},
-    io:fwrite("Client is sending: ~p~n", [Data]),
-    ServerAtom = list_to_atom(Server),
-    Response = genserver:request(ServerAtom, Data),
-    io:fwrite("Client received: ~p~n", [Response]),
-	%% Response = genserver:request(serverAtom, [{connect, self(), St#client_st.nick}]),
-    {reply, ok, St#client_st{server = ServerAtom}} ;
-    % {reply, {error, not_implemented, "Not implemented"}, St} ;
+	case St#client_st.server of
+		 "" ->
+			Data = {connect, self(), St#client_st.nick},
+			io:fwrite("Client is sending: ~p~n", [Data]),
+			ServerAtom = list_to_atom(Server),
+			Response = genserver:request(ServerAtom, Data),
+			io:fwrite("Client received: ~p~n", [Response]),
+			Result = ok,
+			NewSt = St#client_st{server = ServerAtom};
+		_Else ->
+			Result = {error, user_already_connected, "User already connected"},
+			NewSt = St
+	end,
+	{reply, Result, NewSt};
 
 %% Disconnect from server
 handle(St, disconnect) ->
