@@ -20,7 +20,7 @@ initial_state(ServerName) ->
 
 handle(St, {connect, _ClientId, _Nick}) ->
 	NewDict = dict:store(_Nick, _ClientId, St#server_st.clients),
-	X = St#server_st{clients = NewDict},
+	X = St#server_st{clients = [NewDict|St#server_st.clients]},
 	{reply, ok, X};
 
 handle(St, Request) ->
