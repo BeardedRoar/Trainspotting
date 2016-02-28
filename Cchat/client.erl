@@ -24,8 +24,9 @@ handle(St, {connect, Server}) ->
     Data = "hello?",
     io:fwrite("Client is sending: ~p~n", [Data]),
     ServerAtom = list_to_atom(Server),
-    Response = genserver:request(ServerAtom, Data),
-    io:fwrite("Client received: ~p~n", [Response]),
+    %%Response = genserver:request(ServerAtom, Data),
+    %%io:fwrite("Client received: ~p~n", [Response]),
+	genserver:request(serverAtom, self(),  St#client_st.nick),
     {reply, ok, St#client_st{server = ServerAtom}} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
