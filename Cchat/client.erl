@@ -55,8 +55,8 @@ handle(St, disconnect) ->
 					Result = {error, leave_channels_first, "Leave all channels before disconnecting"},
 					NewSt = St;
 				0 == length(St#client_st.channels) ->
-					%%Data = {disconnect, self(), St#client_st.nick},
-					%%genserver:request(St#client_st.server, Data),
+					Data = {disconnect, self(), St#client_st.nick},
+					genserver:request(St#client_st.server, Data),
 					Result = ok,
 					NewSt = St#client_st{server = ""}
 			end
