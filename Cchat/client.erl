@@ -8,7 +8,7 @@
 
 %% Produce initial state
 initial_state(Nick, GUIName) ->
-    #client_st { gui = GUIName, nick = Nick, server = "", channels = []}.
+    #client_st { gui = GUIName, nick = Nick, server = null, channels = []}.
 
 %% ---------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ initial_state(Nick, GUIName) ->
 %% Connect to server
 handle(St, {connect, Server}) ->
 	case St#client_st.server of
-		 "" ->
+		 null ->
 			Data = {connect, self(), St#client_st.nick},
 			ServerAtom = list_to_atom(Server),
 			case catch genserver:request(ServerAtom, Data) of
@@ -45,7 +45,7 @@ handle(St, {connect, Server}) ->
 %% Disconnect from server
 handle(St, disconnect) ->
 	case St#client_st.server of
-		 "" -> 
+		 null -> 
 			Result = {error, user_not_connected, "User not connected"},
 			NewSt = St;
 		_Else ->
@@ -57,7 +57,7 @@ handle(St, disconnect) ->
 					Data = {disconnect, self(), St#client_st.nick},
 					genserver:request(St#client_st.server, Data),
 					Result = ok,
-					NewSt = St#client_st{server = ""}
+					NewSt = St#client_st{server = null}
 			end
 	end,
 	{reply, Result, NewSt};
@@ -110,7 +110,7 @@ handle(St, whoami) ->
 %% Change nick
 handle(St, {nick, Nick}) ->
 	case St#client_st.server of
-		"" ->
+		null ->
 			Result = ok,
 			NewSt = St#client_st{nick = Nick};
 		_Else ->
