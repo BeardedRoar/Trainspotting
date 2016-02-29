@@ -23,7 +23,7 @@ handle(St, {connect, _ClientId, _Nick}) ->
 	case Connected of 
 		false ->
 			io:fwrite("~p~n", [St#server_st.clients]),
-			X = St#server_st{clients = [{_ClientId, _Nick}|St#server_st.clients]},
+			X = St#server_st{clients = [{_Nick, _ClientId}|St#server_st.clients]},
 			Result = ok;
 		_else ->
 			X = St,
@@ -32,7 +32,7 @@ handle(St, {connect, _ClientId, _Nick}) ->
 	{reply, Result, X};
 
 handle(St, {disconnect, _ClientId, _Nick}) ->
-	X = St#server_st{clients = St#server_st.clients -- [{_ClientId, _Nick}]},
+	X = St#server_st{clients = St#server_st.clients -- [{_Nick, _ClientId}]},
 	{reply, ok, X};
 	
 handle(St, {join, _Nick, _ClientId, _Channel}) ->
