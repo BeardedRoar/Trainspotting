@@ -67,12 +67,14 @@ handle(St, {msg_from_GUI, _Channel, _Nick, _Msg}) ->
 	Receivers = lists:keydelete(_Nick, 1, Channel#channel_st.clients ),
 	%%sends the message to everyone in the channel except for the sender.
 	lists:foreach(fun(N) ->
-		genserver:request(element(2,N),{incoming_msg, _Channel, _Nick, _Msg}),
-							io:fwrite("N is: ~p~n", [element(2,N)])
+		F = fun() -> genserver:request(element(2,N),{incoming_msg, _Channel, _Nick, _Msg})
+					end,
+					%%Spawn a new process for every message to be sent.
+					spawn(F)
 				end, Receivers),
 	{reply, ok, St};
 	
-&&Will always match, should never actually be called during execution of program. 
+%%Will always match, should never actually be called during execution of program. 
 handle(St, Request) ->
     io:fwrite("Server received: ~p~n", [Request]),
     Response = "hi!",
