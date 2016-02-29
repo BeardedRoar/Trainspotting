@@ -88,8 +88,8 @@ handle(St, {leave, Channel}) ->
 
 % Sending messages
 handle(St, {msg_from_GUI, Channel, Msg}) ->
-	response = genserver:request(St#client_st.server, {msg_from_GUI, Channel, St#client_st.nick, Msg}),
-     {reply, response, St} ;
+	Response = genserver:request(St#client_st.server, {msg_from_GUI, Channel, St#client_st.nick, Msg}),
+     {reply, Response, St} ;
     %{reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Get current nick
