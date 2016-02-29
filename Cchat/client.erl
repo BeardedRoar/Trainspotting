@@ -8,6 +8,7 @@
 
 %% Produce initial state
 initial_state(Nick, GUIName) ->
+	% Not being connected to a server is represented as the server-part of the state being null
     #client_st { gui = GUIName, nick = Nick, server = null, channels = []}.
 
 %% ---------------------------------------------------------------------------
@@ -22,16 +23,20 @@ initial_state(Nick, GUIName) ->
 %% Connect to server
 handle(St, {connect, Server}) ->
 	case St#client_st.server of
-		 null ->
+		% Only connect if client is not already connected to a server
+		null ->
 			Data = {connect, self(), St#client_st.nick},
 			ServerAtom = list_to_atom(Server),
 			case catch genserver:request(ServerAtom, Data) of
+				% If something goes terribly wrong, mainly if the server can't be reach, handle it instead of crashing
 				{'EXIT', _Reason} ->
 					Result = {error, server_not_reached, "Could not reach server"},
 					NewSt = St;
+				% If server is reached and doesn't returns an error, add it to the state
 				ok ->
 					Result = ok,
 					NewSt = St#client_st{server = ServerAtom};
+				% Handle the possibility that your nick is already taken by somebody else on the server
 				{error, user_already_connected} ->
 					Result = {error, user_already_connected, "Trying to use taken nick"},
 					NewSt = St
@@ -45,11 +50,13 @@ handle(St, {connect, Server}) ->
 %% Disconnect from server
 handle(St, disconnect) ->
 	case St#client_st.server of
-		 null -> 
+		% If the client's not connected no disconnect is needed.
+		null -> 
 			Result = {error, user_not_connected, "User not connected"},
 			NewSt = St;
 		_Else ->
 			if
+				% Make sure client has left all channels before leaving
 				0 < length(St#client_st.channels) ->
 					Result = {error, leave_channels_first, "Leave all channels before disconnecting"},
 					NewSt = St;
@@ -64,6 +71,7 @@ handle(St, disconnect) ->
 
 % Join channel
 handle(St, {join, Channel}) ->
+	% Check if the client has already joined the channel, otherwise join it
 	Joined = lists:member(Channel, St#client_st.channels),
 	if
 		Joined ->
@@ -79,6 +87,7 @@ handle(St, {join, Channel}) ->
 
 %% Leave channel
 handle(St, {leave, Channel}) ->
+	% Only leave the channel if already in it
 	Joined = lists:member(Channel, St#client_st.channels),
 	if
 		Joined ->
@@ -94,6 +103,7 @@ handle(St, {leave, Channel}) ->
 
 % Sending messages
 handle(St, {msg_from_GUI, Channel, Msg}) ->
+	% Make sure you're in the channel you tries to send messages to
 	InChannel = lists:member(Channel, St#client_st.channels),
 	if 
 		InChannel ->
@@ -109,6 +119,7 @@ handle(St, whoami) ->
 
 %% Change nick
 handle(St, {nick, Nick}) ->
+	% Only change the nick if not connected
 	case St#client_st.server of
 		null ->
 			Result = ok,
