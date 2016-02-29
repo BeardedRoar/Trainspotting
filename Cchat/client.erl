@@ -24,10 +24,9 @@ handle(St, {connect, Server}) ->
 	case St#client_st.server of
 		 "" ->
 			Data = {connect, self(), St#client_st.nick},
-			io:fwrite("Client is sending: ~p~n", [Data]),
 			ServerAtom = list_to_atom(Server),
 			case catch genserver:request(ServerAtom, Data) of
-				{'EXIT', Reason} ->
+				{'EXIT', _Reason} ->
 					Result = {error, server_not_reached, "Could not reach server"},
 					NewSt = St;
 				ok ->
