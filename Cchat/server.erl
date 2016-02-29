@@ -27,7 +27,7 @@ handle(St, {connect, _ClientId, _Nick}) ->
 			Result = ok;
 		_else ->
 			X = St,
-			Result = {error, user_already_connected, "User already connected"}
+			Result = {error, user_already_connected}
 	end,
 	{reply, Result, X};
 

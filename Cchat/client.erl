@@ -33,7 +33,7 @@ handle(St, {connect, Server}) ->
 				ok ->
 					Result = ok,
 					NewSt = St#client_st{server = ServerAtom};
-				user_already_connected ->
+				{error, user_already_connected} ->
 					Result = {error, user_already_connected, "Trying to use taken nick"},
 					NewSt = St
 			end;
