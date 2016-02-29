@@ -95,9 +95,14 @@ handle(St, {leave, Channel}) ->
 
 % Sending messages
 handle(St, {msg_from_GUI, Channel, Msg}) ->
-	Response = genserver:request(St#client_st.server, {msg_from_GUI, Channel, St#client_st.nick, Msg}),
-     {reply, Response, St} ;
-    %{reply, {error, not_implemented, "Not implemented"}, St} ;
+	InChannel = lists:member(Channel, St#client_st.channels),
+	if 
+		InChannel ->
+			Response = genserver:request(St#client_st.server, {msg_from_GUI, Channel, St#client_st.nick, Msg});
+		true ->
+			Response = {error, user_not_joined, "You must join the channel to be able to send it messages"}
+	end,
+    {reply, Response, St} ;
 
 %% Get current nick
 handle(St, whoami) ->
