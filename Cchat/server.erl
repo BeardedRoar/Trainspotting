@@ -19,10 +19,17 @@ initial_state(ServerName) ->
 %% and NewState is the new state of the server.
 
 handle(St, {connect, _ClientId, _Nick}) ->
-	io:fwrite("~p~n", [_Nick]),
-	%%NewDict = dict:store(_Nick, _ClientId),
-	X = St#server_st{clients = [{_ClientId, _Nick}|St#server_st.clients]},
-	{reply, ok, X};
+	Connected = lists:keyfind(_Nick, 2, St#server_st.clients ),
+	case Connected of 
+		false ->
+			io:fwrite("~p~n", [St#server_st.clients]),
+			X = St#server_st{clients = [{_ClientId, _Nick}|St#server_st.clients]},
+			Result = ok;
+		_else ->
+			X = St,
+			Result = {error, user_already_connected, "User already connected"}
+	end,
+	{reply, Result, X};
 
 handle(St, {disconnect, _ClientId, _Nick}) ->
 	X = St#server_st{clients = St#server_st.clients -- [{_ClientId, _Nick}]},
