@@ -19,7 +19,7 @@ initial_state(ServerName) ->
 %% and NewState is the new state of the server.
 
 handle(St, {connect, _ClientId, _Nick}) ->
-	Connected = lists:keyfind(_Nick, 2, St#server_st.clients ),
+	Connected = lists:keyfind(_Nick, 1, St#server_st.clients ),
 	case Connected of 
 		false ->
 			io:fwrite("~p~n", [St#server_st.clients]),
