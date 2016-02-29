@@ -35,6 +35,33 @@ handle(St, {join, Nick, Channel}) ->
 	io:fwrite("~p~n", [St#server_st.channels]),
 	{reply, ok, X};
 	
+handle(St, {join, _Nick, _ClientId, _Channel}) ->
+	io:fwrite("channels in serverstate are: ~p~n", [St#server_st.channels]),
+	io:fwrite("channel to match is: ~p~n", [_Channel]),
+	Channel = lists:keyfind(_Channel, #channel_st.name, St#server_st.channels),
+	case Channel of
+		false ->
+			NewChannel = #channel_st{name = _Channel, clients = [{_Nick, _ClientId}]},
+			X = St#server_st{channels = [NewChannel|St#server_st.channels]};
+		_else ->
+			NewChannel = Channel#channel_st{clients = [{_Nick, _ClientId}|Channel#channel_st.clients]},
+			NewChannelList = lists:keyreplace(_Channel, #channel_st.name, St#server_st.channels, NewChannel),
+			X = St#server_st{channels = NewChannelList}
+	end,
+	io:fwrite("channels are: ~p~n", [X]),
+	{reply, ok, X};
+		
+handle(St, {leave, _Nick, _ClientId, _Channel}) ->
+	Channel = lists:keyfind(_Channel, #channel_st.name, St#server_st.channels),
+	io:fwrite("Server received: ~p~n", [lists:keydelete(_Nick, 1, Channel#channel_st.clients )]),
+	NewChannel = Channel#channel_st{clients = lists:keydelete(_Nick, 1, Channel#channel_st.clients )},
+	NewChannelList = lists:keyreplace(_Channel, #channel_st.name, St#server_st.channels, NewChannel),
+	X = St#server_st{channels = NewChannelList},
+	io:fwrite("channels are: ~p~n", [NewChannelList]),
+	{reply, ok, X};
+handle(St, {msg_from_GUI, _Channel, _Nick, _Msg}) ->
+	for each client in channel - client with nick Nick
+	genserver:request(incoming message)
 handle(St, Request) ->
     io:fwrite("Server received: ~p~n", [Request]),
     Response = "hi!",
