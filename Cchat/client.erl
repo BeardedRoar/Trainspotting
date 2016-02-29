@@ -26,10 +26,17 @@ handle(St, {connect, Server}) ->
 			Data = {connect, self(), St#client_st.nick},
 			io:fwrite("Client is sending: ~p~n", [Data]),
 			ServerAtom = list_to_atom(Server),
-			Response = genserver:request(ServerAtom, Data),
-			io:fwrite("Client received: ~p~n", [Response]),
-			Result = ok,
-			NewSt = St#client_st{server = ServerAtom};
+			case catch genserver:request(ServerAtom, Data) of
+				{'EXIT', Reason} ->
+					Result = {error, server_not_reached, "Could not reach server"},
+					NewSt = St;
+				ok ->
+					Result = ok,
+					NewSt = St#client_st{server = ServerAtom};
+				user_already_connected ->
+					Result = {error, user_already_connected, "Trying to use taken nick"},
+					NewSt = St
+			end;
 		_Else ->
 			Result = {error, user_already_connected, "User already connected"},
 			NewSt = St
