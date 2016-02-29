@@ -58,7 +58,17 @@ handle(St, disconnect) ->
 
 % Join channel
 handle(St, {join, Channel}) ->
-    {reply, ok, St#client_st{channels = [Channel|St#client_st.channels]}} ;
+	Joined = lists:member(Channel, St#client_st.channels),
+	if
+		Joined ->
+			Response = {error, user_already_joined, "User has already joined this channel!"},
+			NewSt = St;
+		true ->
+			Data = {join, St#client_st.nick, self(), Channel},
+			Response = genserver:request(St#client_st.server, Data),
+			NewSt = St#client_st{channels = [Channel|St#client_st.channels]}
+	end,
+    {reply, Response, NewSt} ;
     % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Leave channel
@@ -66,7 +76,8 @@ handle(St, {leave, Channel}) ->
 	Joined = lists:member(Channel, St#client_st.channels),
 	if
 		Joined ->
-			Response = ok,
+		Data = {leave, St#client_st.nick, self(), Channel},
+			Response = genserver:request(St#client_st.server, Data),
 			NewSt = St#client_st{channels = St#client_st.channels -- [Channel]};
 		true ->
 			Response = {error, user_not_joined, "You cannot leave a channel you have not joined"},
@@ -77,8 +88,9 @@ handle(St, {leave, Channel}) ->
 
 % Sending messages
 handle(St, {msg_from_GUI, Channel, Msg}) ->
-    % {reply, ok, St} ;
-    {reply, {error, not_implemented, "Not implemented"}, St} ;
+	response = genserver:request(St#client_st.server, {msg_from_GUI, Channel, St#client_st.nick, Msg}),
+     {reply, response, St} ;
+    %{reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Get current nick
 handle(St, whoami) ->
