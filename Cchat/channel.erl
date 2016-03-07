@@ -5,21 +5,20 @@
 
 %% Produce initial state
 initial_state(Name) ->
-	% Not being connected to a server is represented as the server-part of the state being null
     #channel_st {name = Name, clients = []}.
 
 %% ---------------------------------------------------------------------------
-
+%%Called when a client wishes to join the channel.
 handle(St, {join, _Nick, _ClientId}) ->
 	{reply, ok, St#channel_st{clients = [{_Nick, _ClientId}|St#channel_st.clients]}};
 
-%%Called when a client wishes to leave a Channel.
+%%Called when a client wishes to leave the Channel.
 handle(St, {leave, _Nick, _ClientId}) ->
 	NewSt = St#channel_st{clients = St#channel_st.clients -- [{_Nick, _ClientId}]},
 	{reply, ok, NewSt};
 	
-%%Called whenever a message is sent from a Channel. Sends the message to all other clients who have joined
-%%that channel. 	
+%%Called whenever a message is sent in the Channel. Sends the message to all other clients who have joined
+%%this channel. 	
 handle(St, {msg_from_GUI, Channel, _Nick, _Msg}) ->
 	Receivers = lists:keydelete(_Nick, 1, St#channel_st.clients ),
 	%%sends the message to everyone in the channel except for the sender.
