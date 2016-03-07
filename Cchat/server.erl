@@ -52,6 +52,7 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 
 %% Called to send jobs to all clients connected to the server. 	
 handle(St, {job, Function, Input}) ->
+	%% Only do job in teh case there are workers
 	case length(St#server_st.clients) of
 		0 ->
 			Results = {error, no_workers, "No workers available to perform the task"};
