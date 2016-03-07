@@ -1,7 +1,7 @@
 -module(client).
 -export([handle/2, initial_state/2]).
 -include_lib("./defs.hrl").
--incluse(stdlib).
+-include(stdlib).
 
 %% Produce initial state
 initial_state(Name, ) ->
@@ -10,7 +10,8 @@ initial_state(Name, ) ->
 
 %% ---------------------------------------------------------------------------
 
-handle(St, {join, _Nick, _ClientId})
+handle(St, {join, _Nick, _ClientId}) ->
+	{reply, ok, St#channel_st.clients = [{_Nick, _ClientId}|St#channel_st.clients]};
 
 %%Called when a client wishes to leave a Channel.
 handle(St, {leave, _Nick, _ClientId, _Channel}) ->
