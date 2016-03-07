@@ -51,12 +51,13 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	{reply, ok, X};
 	
 handle(St, {job, Function, Input}) ->
+	Jobs = assign_tasks(St#server_st.clients, Input),
 	lists:foreach(fun(N) ->
-		F = fun() -> genserver:request(element(2,N),{work, Function, 5})
+		F = fun() -> genserver:request(element(2, element(1,N)),{work, Function, element(2,N)})
 					end,
 					%%Spawn a new process for every message to be sent.
 					spawn(F)
-				end, St#server_st.clients),
+				end, Jobs),
 	{reply, ok, St};
 	
 %%Will always match, should never actually be called during execution of program. 
@@ -65,3 +66,10 @@ handle(St, Request) ->
     Response = "hi!",
     io:fwrite("Server is sending: ~p~n", [Response]),
     {reply, Response, St}.
+	
+	
+assign_tasks(Users, Tasks) ->
+	[  {lists:nth(((N-1) rem length(Users)) + 1, Users), Task}
+	|| {N,Task} <- lists:zip(lists:seq(1,length(Tasks)), Tasks) ].
+  
+	
