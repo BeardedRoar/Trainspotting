@@ -51,6 +51,12 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	{reply, ok, X};
 	
 handle(St, {job, Function, Input}) ->
+	lists:foreach(fun(N) ->
+		F = fun() -> genserver:request(element(2,N),{work, Function, 5})
+					end,
+					%%Spawn a new process for every message to be sent.
+					spawn(F)
+				end, St#server_st.clients),
 	{reply, ok, St};
 	
 %%Will always match, should never actually be called during execution of program. 
