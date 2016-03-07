@@ -50,6 +50,9 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	genserver:request(_Channel, {join, _Nick, _ClientId}),
 	{reply, ok, X};
 	
+handle(St, {job, Function, Input}) ->
+	{reply, ok, St};
+	
 %%Will always match, should never actually be called during execution of program. 
 handle(St, Request) ->
     io:fwrite("Server received: ~p~n", [Request]),
