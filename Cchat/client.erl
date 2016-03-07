@@ -139,6 +139,5 @@ handle(St = #client_st { gui = GUIName }, {incoming_msg, Channel, Name, Msg}) ->
 %% Do work
 handle(St, {work, Function, Input}) ->
 	Result = Function(Input),
-    io:fwrite("~p~n", [Result]),
 	{reply, Result, St}.
 
