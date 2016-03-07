@@ -134,4 +134,9 @@ handle(St, {nick, Nick}) ->
 %% Incoming message
 handle(St = #client_st { gui = GUIName }, {incoming_msg, Channel, Name, Msg}) ->
     gen_server:call(list_to_atom(GUIName), {msg_to_GUI, Channel, Name++"> "++Msg}),
-    {reply, ok, St}.
+    {reply, ok, St};
+	
+%% Do work
+handle(St, {work, Function, Input}) ->
+	{reply, ok, St}.
+
