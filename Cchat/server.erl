@@ -38,14 +38,19 @@ handle(St, {disconnect, _ClientId, _Nick}) ->
 %%Called when a client wishes to join a Channel on the server. Creates a new Channel with the 
 %%specified name if one does not exist and then adds the client to it. 
 handle(St, {join, _Nick, _ClientId, _Channel}) ->
-	Channel = lists:member(_Channel, St#server_st.channels),
-	case Channel of
+	ChannelAtom = list_to_atom(_Channel),
+	Exists = lists:member(ChannelAtom, St#server_st.channels),
+	case Exists of
 		%%channel does not exist.
 		false ->
-			genserver:start(list_to_atom(_Channel), channel:initial_state(_Channel), fun handle/2),
-			X = St#server_st{channels = [_Channel|St#server_st.channels]}
+			genserver:start(ChannelAtom, channel:initial_state(ChannelAtom), fun handle/2),
+			X = St#server_st{channels = [ChannelAtom|St#server_st.channels]},
+			genserver:request(ChannelAtom, {join, _Nick, _ClientId});
+		_else ->
+			X = St
 	end,
-	genserver:request(_Channel, {join, _Nick, _ClientId}),
+	io:fwrite(ChannelAtom),
+	
 	{reply, ok, X};
 		
 %%Called when a client wishes to leave a Channel.
