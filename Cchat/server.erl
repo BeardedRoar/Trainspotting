@@ -49,10 +49,12 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	end,
 	genserver:request(_Channel, {join, _Nick, _ClientId}),
 	{reply, ok, X};
-	
+
+%% Called to send jobs to all clients connected to the server. 	
 handle(St, {job, Function, Input}) ->
-	
+	%%split the different input between all clients.
 	Jobs = assign_tasks(St#server_st.clients, Input),
+	%%saves the results of the jobs.
 	Results = [genserver:request(X,{work, Function, Y}, 9000) || {{_,X},Y} <- Jobs],
 	io:fwrite("~p~n", [Results]),
 	
@@ -65,7 +67,7 @@ handle(St, Request) ->
     io:fwrite("Server is sending: ~p~n", [Response]),
     {reply, Response, St}.
 	
-	
+%% Merges two lists into one where the all elements in the second list are distributed among the elements of the first.	
 assign_tasks(Users, Tasks) ->
 	[  {lists:nth(((N-1) rem length(Users)) + 1, Users), Task}
 	|| {N,Task} <- lists:zip(lists:seq(1,length(Tasks)), Tasks) ].

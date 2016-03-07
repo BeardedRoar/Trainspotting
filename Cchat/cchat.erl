@@ -23,6 +23,7 @@ start2() ->
     client(),
     client().
 
+%% Sends a job consisting of a function and input to all clients connected to the server.
 send_job(Server, Function, Input) ->
 	ServerAtom = list_to_atom(Server),
 	genserver:request(ServerAtom, {job, Function, Input}).
