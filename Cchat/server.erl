@@ -42,8 +42,8 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	case Channel of
 		%%channel does not exist.
 		false ->
-			genserver:start(list_to_atom(_Channel, channel:initial_state(_Channel), fun handle/2)),
-			X = St#server_st{channels = [_Channel|St#server_st.channels]};
+			genserver:start(list_to_atom(_Channel), channel:initial_state(_Channel), fun handle/2),
+			X = St#server_st{channels = [_Channel|St#server_st.channels]}
 	end,
 	genserver:request(_Channel, {join, _Nick, _ClientId}),
 	{reply, ok, X};

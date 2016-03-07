@@ -1,17 +1,17 @@
--module(client).
--export([handle/2, initial_state/2]).
+-module(channel).
+-export([handle/2, initial_state/1]).
 -include_lib("./defs.hrl").
--include(stdlib).
+-incluse(stdlib).
 
 %% Produce initial state
-initial_state(Name, ) ->
+initial_state(Name) ->
 	% Not being connected to a server is represented as the server-part of the state being null
     #channel_st {name = Name, clients = []}.
 
 %% ---------------------------------------------------------------------------
 
 handle(St, {join, _Nick, _ClientId}) ->
-	{reply, ok, St#channel_st.clients = [{_Nick, _ClientId}|St#channel_st.clients]};
+	{reply, ok, St#channel_st{clients = [{_Nick, _ClientId}|St#channel_st.clients]}};
 
 %%Called when a client wishes to leave a Channel.
 handle(St, {leave, _Nick, _ClientId, _Channel}) ->
@@ -33,5 +33,5 @@ handle(St, {msg_from_GUI, _Channel, _Nick, _Msg}) ->
 					%%Spawn a new process for every message to be sent.
 					spawn(F)
 				end, Receivers),
-	{reply, ok, St};
+	{reply, ok, St}.
 	
