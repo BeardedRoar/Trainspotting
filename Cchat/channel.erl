@@ -3,7 +3,14 @@
 -include_lib("./defs.hrl").
 -incluse(stdlib).
 
+%% Produce initial state
+initial_state(Name, ) ->
+	% Not being connected to a server is represented as the server-part of the state being null
+    #channel_st {name = Name, clients = []}.
 
+%% ---------------------------------------------------------------------------
+
+handle(St, {join, _Nick, _ClientId})
 
 %%Called when a client wishes to leave a Channel.
 handle(St, {leave, _Nick, _ClientId, _Channel}) ->
@@ -27,9 +34,3 @@ handle(St, {msg_from_GUI, _Channel, _Nick, _Msg}) ->
 				end, Receivers),
 	{reply, ok, St};
 	
-%% Produce initial state
-initial_state(Name, ) ->
-	% Not being connected to a server is represented as the server-part of the state being null
-    #channel_st { name = GUIName, nick = Nick, server = null, channels = []}.
-
-%% ---------------------------------------------------------------------------
