@@ -51,12 +51,14 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	{reply, ok, X};
 	
 handle(St, {job, Function, Input}) ->
-	
-	Jobs = assign_tasks(St#server_st.clients, Input),
-	Results = [genserver:request(X,{work, Function, Y}, 9000) || {{_,X},Y} <- Jobs],
-	io:fwrite("~p~n", [Results]),
-	
-	{reply, ok, St};
+	case length(St#server_st.clients) of
+		0 ->
+			Results = {error, no_workers, "No workers available to perform the task"};
+		_else ->
+			Jobs = assign_tasks(St#server_st.clients, Input),
+			Results = [genserver:request(X,{work, Function, Y}, infinity) || {{_,X},Y} <- Jobs]
+	end,
+	{reply, Results, St};
 	
 %%Will always match, should never actually be called during execution of program. 
 handle(St, Request) ->

@@ -25,5 +25,10 @@ start2() ->
 
 send_job(Server, Function, Input) ->
 	ServerAtom = list_to_atom(Server),
-	genserver:request(ServerAtom, {job, Function, Input}).
+	case catch genserver:request(ServerAtom, {job, Function, Input}, infinity) of
+		{'EXIT', _Reason} ->
+			{error, server_not_reached, "Could not reach server"};
+		Response ->
+			Response
+	end.
 		
