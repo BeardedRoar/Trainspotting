@@ -43,13 +43,12 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	case Exists of
 		%%channel does not exist.
 		false ->
-			genserver:start(ChannelAtom, channel:initial_state(ChannelAtom), fun handle/2),
+			genserver:start(ChannelAtom, channel:initial_state(ChannelAtom), fun channel:handle/2),
 			X = St#server_st{channels = [ChannelAtom|St#server_st.channels]},
 			genserver:request(ChannelAtom, {join, _Nick, _ClientId});
 		_else ->
 			X = St
 	end,
-	io:fwrite(ChannelAtom),
 	
 	{reply, ok, X};
 		
