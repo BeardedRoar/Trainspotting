@@ -37,8 +37,8 @@ handle(St, {connect, Server}) ->
 					Result = ok,
 					NewSt = St#client_st{server = ServerAtom};
 				% Handle the possibility that your nick is already taken by somebody else on the server
-				{error, user_already_connected} ->
-					Result = {error, user_already_connected, "Trying to use taken nick"},
+				{error, nick_taken} ->
+					Result = {error, nick_taken, "Trying to use taken nick"},
 					NewSt = St
 			end;
 		_Else ->
@@ -72,42 +72,43 @@ handle(St, disconnect) ->
 % Join channel
 handle(St, {join, Channel}) ->
 	% Check if the client has already joined the channel, otherwise join it
-	Joined = lists:member(Channel, St#client_st.channels),
+	ChannelAtom = list_to_atom(Channel),
+	Joined = lists:member(ChannelAtom, St#client_st.channels),
 	if
 		Joined ->
 			Response = {error, user_already_joined, "User has already joined this channel!"},
 			NewSt = St;
 		true ->
-			Data = {join, St#client_st.nick, self(), Channel},
+			Data = {join, St#client_st.nick, self(), ChannelAtom},
 			Response = genserver:request(St#client_st.server, Data),
-			NewSt = St#client_st{channels = [Channel|St#client_st.channels]}
+			NewSt = St#client_st{channels = [ChannelAtom|St#client_st.channels]}
 	end,
     {reply, Response, NewSt} ;
-    % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 %% Leave channel
 handle(St, {leave, Channel}) ->
 	% Only leave the channel if already in it
-	Joined = lists:member(Channel, St#client_st.channels),
+	ChannelAtom = list_to_atom(Channel),
+	Joined = lists:member(ChannelAtom, St#client_st.channels),
 	if
 		Joined ->
-		Data = {leave, St#client_st.nick, self(), Channel},
-			Response = genserver:request(St#client_st.server, Data),
-			NewSt = St#client_st{channels = St#client_st.channels -- [Channel]};
+		Data = {leave, St#client_st.nick, self()},
+			Response = genserver:request(ChannelAtom, Data),
+			NewSt = St#client_st{channels = St#client_st.channels -- [ChannelAtom]};
 		true ->
 			Response = {error, user_not_joined, "You cannot leave a channel you have not joined"},
 			NewSt = St
 	end,
     {reply, Response, NewSt} ;
-    % {reply, {error, not_implemented, "Not implemented"}, St} ;
 
 % Sending messages
 handle(St, {msg_from_GUI, Channel, Msg}) ->
 	% Make sure you're in the channel you tries to send messages to
-	InChannel = lists:member(Channel, St#client_st.channels),
+	ChannelAtom = list_to_atom(Channel),
+	InChannel = lists:member(ChannelAtom, St#client_st.channels),
 	if 
 		InChannel ->
-			Response = genserver:request(St#client_st.server, {msg_from_GUI, Channel, St#client_st.nick, Msg});
+			Response = genserver:request(ChannelAtom, {msg_from_GUI, Channel, St#client_st.nick, Msg});
 		true ->
 			Response = {error, user_not_joined, "You must join the channel to be able to send it messages"}
 	end,
