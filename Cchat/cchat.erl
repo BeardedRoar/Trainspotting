@@ -43,8 +43,7 @@ send_job(Server, Function, Input) ->
 	end.
 	
 send({{_,User}, Job, Function}) ->
-	Response = genserver:request(User,{work, Function, Job}, infinity),
-	Response.
+	genserver:request(User,{work, Function, Job}, infinity).
 
 %% Merges two lists into one where the all elements in the second list are distributed among the elements of the first.	
 assign_tasks(Users, Tasks, Function) ->
