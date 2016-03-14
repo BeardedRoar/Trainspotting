@@ -49,35 +49,13 @@ handle(St, {join, _Nick, _ClientId, _Channel}) ->
 	end,
 	genserver:request(_Channel, {join, _Nick, _ClientId}),
 	{reply, ok, X};
-
-%% Called to send jobs to all clients connected to the server. 	
-handle(St, {job, Function, Input}) ->
-	%% Only do job in teh case there are workers
-	case length(St#server_st.clients) of
-		0 ->
-			Result = {error, no_workers, "No workers available to perform the task"};
-		_else ->
-			%%split the different input between all clients.
-			Jobs = assign_tasks(St#server_st.clients, Input),
-			%%saves the results of the jobs.
-			SPID = self(),
-			F = fun() -> 
-				SPID ! {work_done, [genserver:request(X,{work, Function, Y}, infinity) || {{_,X},Y} <- Jobs]}
-			end,
-			spawn(F),
-			receive
-				{work_done, Response} ->
-					Result = Response
-			end
-	end,
-	{reply, Result, St};
 	
-handle(St, {get_tasks, Input}) ->
+handle(St, {get_users}) ->
 	case length(St#server_st.clients) of
 		0 ->
 			Result = {error, no_workers, "No workers available to perform the task"};
 		_else ->
-			Result = assign_tasks(St#server_st.clients, Input)
+			Result = (St#server_st.clients)
 	end,
 	{reply, Result, St};
 	
@@ -87,10 +65,4 @@ handle(St, Request) ->
     Response = "hi!",
     io:fwrite("Server is sending: ~p~n", [Response]),
     {reply, Response, St}.
-	
-%% Merges two lists into one where the all elements in the second list are distributed among the elements of the first.	
-assign_tasks(Users, Tasks) ->
-	[  {lists:nth(((N-1) rem length(Users)) + 1, Users), Task}
-	|| {N,Task} <- lists:zip(lists:seq(1,length(Tasks)), Tasks) ].
-  
-	
+
