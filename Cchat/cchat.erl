@@ -26,10 +26,18 @@ start2() ->
 %% Sends a job consisting of a function and input to all clients connected to the server.
 send_job(Server, Function, Input) ->
 	ServerAtom = list_to_atom(Server),
-	case catch genserver:request(ServerAtom, {job, Function, Input}, infinity) of
+	case catch genserver:request(ServerAtom, {get_tasks, Input}, infinity) of
 		{'EXIT', _Reason} ->
 			{error, server_not_reached, "Could not reach server"};
 		Response ->
-			Response
+			SPID = self(),
+			F = fun() -> 
+				SPID ! {work_done, [genserver:request(X,{work, Function, Y}, infinity) || {{_,X},Y} <- Response]}
+			end,
+			spawn(F),
+			receive
+				{work_done, Result} ->
+					Result
+			end
 	end.
 		

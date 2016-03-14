@@ -63,12 +63,21 @@ handle(St, {job, Function, Input}) ->
 			SPID = self(),
 			F = fun() -> 
 				SPID ! {work_done, [genserver:request(X,{work, Function, Y}, infinity) || {{_,X},Y} <- Jobs]}
-				end,
+			end,
 			spawn(F),
 			receive
 				{work_done, Response} ->
 					Result = Response
-				end
+			end
+	end,
+	{reply, Result, St};
+	
+handle(St, {get_tasks, Input}) ->
+	case length(St#server_st.clients) of
+		0 ->
+			Result = {error, no_workers, "No workers available to perform the task"};
+		_else ->
+			Result = assign_tasks(St#server_st.clients, Input)
 	end,
 	{reply, Result, St};
 	
