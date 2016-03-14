@@ -55,14 +55,22 @@ handle(St, {job, Function, Input}) ->
 	%% Only do job in teh case there are workers
 	case length(St#server_st.clients) of
 		0 ->
-			Results = {error, no_workers, "No workers available to perform the task"};
+			Result = {error, no_workers, "No workers available to perform the task"};
 		_else ->
 			%%split the different input between all clients.
 			Jobs = assign_tasks(St#server_st.clients, Input),
 			%%saves the results of the jobs.
-			Results = [genserver:request(X,{work, Function, Y}, infinity) || {{_,X},Y} <- Jobs]
+			SPID = self(),
+			F = fun() -> 
+				SPID ! {work_done, [genserver:request(X,{work, Function, Y}, infinity) || {{_,X},Y} <- Jobs]}
+				end,
+			spawn(F),
+			receive
+				{work_done, Response} ->
+					Result = Response
+				end
 	end,
-	{reply, Results, St};
+	{reply, Result, St};
 	
 %%Will always match, should never actually be called during execution of program. 
 handle(St, Request) ->
